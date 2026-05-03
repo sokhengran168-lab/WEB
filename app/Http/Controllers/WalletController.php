@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\WalletLog;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class WalletController extends Controller
 {
@@ -15,7 +16,7 @@ class WalletController extends Controller
     // Show wallet page
     public function index()
     {
-        $logs = WalletLog::where('user_id', auth()->id())
+        $logs = WalletLog::where('user_id', Auth::id())
             ->latest()
             ->paginate(15);
 
@@ -32,7 +33,7 @@ class WalletController extends Controller
         ]);
 
         $this->walletService->credit(
-            userId:      auth()->id(),
+            userId:      Auth::id(),
             amount:      $request->amount,
             type:        'topup',
             description: 'Wallet top-up'

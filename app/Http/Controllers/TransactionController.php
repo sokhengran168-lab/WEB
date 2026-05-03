@@ -7,6 +7,7 @@ use App\Models\Transaction;
 use App\Services\EscrowService;
 use App\Services\WalletService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class TransactionController extends Controller
 {
@@ -19,12 +20,12 @@ class TransactionController extends Controller
     public function index()
     {
         $purchases = Transaction::with(['listing', 'seller'])
-            ->where('buyer_id', auth()->id())
+            ->where('buyer_id', Auth::id())
             ->latest()
             ->paginate(10, ['*'], 'purchases_page');
 
         $sales = Transaction::with(['listing', 'buyer'])
-            ->where('seller_id', auth()->id())
+            ->where('seller_id', Auth::id())
             ->latest()
             ->paginate(10, ['*'], 'sales_page');
 
@@ -36,8 +37,8 @@ class TransactionController extends Controller
     {
         // Only buyer or seller can view
         if (
-            $transaction->buyer_id  !== auth()->id() &&
-            $transaction->seller_id !== auth()->id()
+            $transaction->buyer_id  !== Auth::id() &&
+            $transaction->seller_id !== Auth::id()
         ) {
             abort(403);
         }
@@ -61,12 +62,12 @@ class TransactionController extends Controller
         }
 
         // Cannot buy your own listing
-        if ($listing->user_id === auth()->id()) {
+        if ($listing->user_id === Auth::id()) {
             return back()->with('error', 'You cannot buy your own listing.');
         }
 
         // Check wallet balance
-        if (!$this->walletService->hasSufficientBalance(auth()->id(), $listing->price)) {
+        if (!$this->walletService->hasSufficientBalance(Auth::id(), $listing->price)) {
             return redirect()
                 ->route('wallet.index')
                 ->with('error', 'Insufficient balance. Please top up your wallet first.');
@@ -74,7 +75,7 @@ class TransactionController extends Controller
 
         // Check if buyer already has active transaction for this listing
         $existingTransaction = Transaction::where('listing_id', $listing->id)
-            ->where('buyer_id', auth()->id())
+            ->where('buyer_id', Auth::id())
             ->whereIn('status', ['pending', 'escrow'])
             ->first();
 
@@ -92,7 +93,7 @@ class TransactionController extends Controller
         $transaction = Transaction::create([
             'transaction_code' => Transaction::generateCode(),
             'listing_id'       => $listing->id,
-            'buyer_id'         => auth()->id(),
+            'buyer_id'         => Auth::id(),
             'seller_id'        => $listing->user_id,
             'amount'           => $listing->price,
             'platform_fee'     => $fee,
@@ -111,7 +112,7 @@ class TransactionController extends Controller
     // Buyer clicks "Confirm Receipt"
     public function confirm(Transaction $transaction)
     {
-        if ($transaction->buyer_id !== auth()->id()) {
+        if ($transaction->buyer_id !== Auth::id()) {
             abort(403);
         }
 
@@ -129,7 +130,7 @@ class TransactionController extends Controller
     // Buyer clicks "Raise Dispute"
     public function dispute(Request $request, Transaction $transaction)
     {
-        if ($transaction->buyer_id !== auth()->id()) {
+        if ($transaction->buyer_id !== Auth::id()) {
             abort(403);
         }
 

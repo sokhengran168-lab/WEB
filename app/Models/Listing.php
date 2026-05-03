@@ -43,6 +43,8 @@ class Listing extends Model
         'is_flagged',
         'flag_reason',
         'flagged_at',
+
+        'share_count',
     ];
 
     protected $casts = [
@@ -184,6 +186,11 @@ class Listing extends Model
     //Increment view count when someone visits
     public function incrementViews(){
         $this->increment('views_count');
+    }
+
+    // Scope social sharing
+    public function incrementShares(): void {
+        $this->increment('share_count');
     }
 
 }

@@ -105,5 +105,4 @@
             {{ $listings->withQueryString()->links() }}
         </div>
     </div>
-
 @endsection

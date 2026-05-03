@@ -13,6 +13,7 @@ use App\Http\Controllers\Admin\AuctionController as AdminAuctionController;
 use App\Http\Controllers\Admin\ReportController as AdminReportController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Auth;
 
 // ── PUBLIC ROUTES ─────────────────────────────────────────
 Route::get('/', [ListingController::class, 'index'])->name('home');
@@ -28,12 +29,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard', function () {
         $listings = \App\Models\Listing::with('game')
-            ->where('user_id', auth()->id())
+            ->where('user_id', Auth::id())
             ->latest()
             ->get();
 
         $purchases = \App\Models\Transaction::with('listing')
-            ->where('buyer_id', auth()->id())
+            ->where('buyer_id', Auth::id())
             ->latest()
             ->take(5)
             ->get();
@@ -177,3 +178,7 @@ Route::get('/auctions/{listing}', [AuctionController::class, 'show'])
 // Seller profile
 Route::get('/sellers/{user}', [App\Http\Controllers\SellerProfileController::class, 'show'])
     ->name('sellers.show');
+
+// Share routes — public
+Route::post('/share/{listing}', [App\Http\Controllers\ShareController::class, 'share'])
+    ->name('listings.share');

@@ -2,9 +2,30 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'GameTradeHub')</title>
+
+    {{-- Open Graph Meta Tags for social sharing --}}
+    <meta property="og:site_name"   content="GameTradeHub">
+    <meta property="og:type"        content="website">
+    <meta property="og:title"       content="@yield('og_title', 'GameTradeHub — Buy & Sell Game Accounts')">
+    <meta property="og:description" content="@yield('og_description', 'Safe escrow-protected marketplace for game accounts. Buy and sell Mobile Legends, Valorant, PUBG and more.')">
+    <meta property="og:url"         content="@yield('og_url', url()->current())">
+    <meta property="og:image"       content="@yield('og_image', asset('images/og-default.png'))">
+
+    {{-- Twitter Card --}}
+    <meta name="twitter:card"        content="summary_large_image">
+    <meta name="twitter:title"       content="@yield('og_title', 'GameTradeHub')">
+    <meta name="twitter:description" content="@yield('og_description', 'Safe escrow-protected marketplace for game accounts.')">
+    <meta name="twitter:image"       content="@yield('og_image', asset('images/og-default.png'))">
+
+    {{-- General --}}
+    <meta name="description" content="@yield('og_description', 'Safe escrow-protected marketplace for game accounts.')">
+
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 </head>
 <body class="bg-gray-950 text-white min-h-screen">

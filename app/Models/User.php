@@ -49,7 +49,6 @@ class User extends Authenticatable
         'seller_sells_elsewhere',
         'seller_other_platforms',
 
-
     ];
 
     /**

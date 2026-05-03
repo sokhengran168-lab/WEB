@@ -1,5 +1,9 @@
 @extends('layouts.app')
-@section('title', $listing->title)
+@section('title', $listing->title . ' — GameTradeHub')
+@section('og_type', 'product')
+@section('og_title', $listing->title . ' — GameTradeHub')
+@section('og_description', 'Buy: ' . $listing->title . ' | ' . $listing->game->name . ' | $' . number_format($listing->price, 2) . ' | Escrow Protected')
+@section('og_image', $listing->firstImage ? $listing->firstImage->url : asset('images/og-default.jpg'))
 
 @section('content')
 <div class="max-w-6xl mx-auto px-4 py-6">
@@ -226,6 +230,109 @@
                     <span>📅 Ends: {{ $listing->auction_ends_at->format('M d, Y · H:i') }}</span>
                 </div>
 
+                {{-- Share Buttons --}}
+                <div class="mt-4 pt-4 border-t border-gray-800" x-data="{ copied: false }">
+                    <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3
+                                flex items-center gap-2">
+                        <i class="fa-solid fa-share-nodes text-yellow-400"></i>
+                        Share This Auction
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+
+                        <a href="https://api.whatsapp.com/send?text={{ urlencode('🏆 AUCTION: ' . $listing->title . ' | Bid now on GameTradeHub: ' . url()->current()) }}"
+                        target="_blank"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
+                                duration-200 border border-green-500/20 bg-green-500/5
+                                hover:bg-green-500/15 hover:border-green-500/40
+                                hover:-translate-y-0.5">
+                            <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center
+                                        flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+                                <i class="fa-brands fa-whatsapp text-white text-base"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold text-green-400">WhatsApp</div>
+                                <div class="text-xs text-gray-500">Share this auction</div>
+                            </div>
+                        </a>
+
+                        <a href="https://t.me/share/url?url={{ urlencode(url()->current()) }}&text={{ urlencode('🏆 AUCTION: ' . $listing->title . ' | Bid now!') }}"
+                        target="_blank"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
+                                duration-200 border border-sky-500/20 bg-sky-500/5
+                                hover:bg-sky-500/15 hover:border-sky-500/40
+                                hover:-translate-y-0.5">
+                            <div class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center
+                                        flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+                                <i class="fa-brands fa-telegram text-white text-base"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold text-sky-400">Telegram</div>
+                                <div class="text-xs text-gray-500">Share to channel</div>
+                            </div>
+                        </a>
+
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}"
+                        target="_blank"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
+                                duration-200 border border-blue-500/20 bg-blue-500/5
+                                hover:bg-blue-500/15 hover:border-blue-500/40
+                                hover:-translate-y-0.5">
+                            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center
+                                        flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
+                                <i class="fa-brands fa-facebook-f text-white text-base"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold text-blue-400">Facebook</div>
+                                <div class="text-xs text-gray-500">Share to timeline</div>
+                            </div>
+                        </a>
+
+                        <a href="https://twitter.com/intent/tweet?text={{ urlencode('🏆 AUCTION: ' . $listing->title) }}&url={{ urlencode(url()->current()) }}"
+                        target="_blank"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
+                                duration-200 border border-gray-600/30 bg-gray-800/50
+                                hover:bg-gray-800 hover:border-gray-500/50
+                                hover:-translate-y-0.5">
+                            <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center
+                                        flex-shrink-0 border border-gray-700
+                                        group-hover:scale-110 transition-transform duration-200">
+                                <i class="fa-brands fa-x-twitter text-white text-base"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold text-gray-300">X (Twitter)</div>
+                                <div class="text-xs text-gray-500">Tweet this auction</div>
+                            </div>
+                        </a>
+
+                        <button @click="
+                                navigator.clipboard.writeText('{{ url()->current() }}');
+                                copied = true;
+                                setTimeout(() => copied = false, 2500)"
+                                class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
+                                    duration-200 border w-full text-left
+                                    border-yellow-500/20 bg-yellow-500/5
+                                    hover:bg-yellow-500/15 hover:border-yellow-500/40
+                                    hover:-translate-y-0.5">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center
+                                        flex-shrink-0 transition-all duration-200 group-hover:scale-110"
+                                :class="copied ? 'bg-green-500' : 'bg-yellow-500'">
+                                <i class="text-black text-base"
+                                :class="copied ? 'fa-solid fa-check' : 'fa-solid fa-link'"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold"
+                                    :class="copied ? 'text-green-400' : 'text-yellow-400'"
+                                    x-text="copied ? 'Link Copied!' : 'Copy Link'">
+                                </div>
+                                <div class="text-xs text-gray-500">
+                                    Share the auction link
+                                </div>
+                            </div>
+                        </button>
+
+                    </div>
+                </div>
             </div>
         </div>
 

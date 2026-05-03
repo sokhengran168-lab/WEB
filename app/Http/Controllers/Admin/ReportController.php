@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Report;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class ReportController extends Controller
 {
@@ -34,7 +35,7 @@ class ReportController extends Controller
         // Resolve this report
         $report->update([
             'status'      => 'resolved',
-            'reviewed_by' => auth()->id(),
+            'reviewed_by' => Auth::id(),
             'admin_note'  => $request->admin_note,
             'reviewed_at' => now(),
         ]);
@@ -44,7 +45,7 @@ class ReportController extends Controller
             ->where('status', 'pending')
             ->update([
                 'status'      => 'resolved',
-                'reviewed_by' => auth()->id(),
+                'reviewed_by' => Auth::id(),
                 'reviewed_at' => now(),
             ]);
 
@@ -55,7 +56,7 @@ class ReportController extends Controller
     {
         $report->update([
             'status'      => 'dismissed',
-            'reviewed_by' => auth()->id(),
+            'reviewed_by' => Auth::id(),
             'admin_note'  => $request->admin_note ?? 'No issue found.',
             'reviewed_at' => now(),
         ]);

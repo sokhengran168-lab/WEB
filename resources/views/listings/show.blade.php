@@ -1,5 +1,9 @@
 @extends('layouts.app')
-@section('title', $listing->title)
+@section('title', $listing->title . ' — GameTradeHub')
+@section('og_type', 'product')
+@section('og_title', $listing->title . ' — GameTradeHub')
+@section('og_description', 'Buy: ' . $listing->title . ' | ' . $listing->game->name . ' | $' . number_format($listing->price, 2) . ' | Escrow Protected')
+@section('og_image', $listing->firstImage ? $listing->firstImage->url : asset('images/og-default.jpg'))
 
 @section('content')
 <div class="max-w-6xl mx-auto px-4 py-6">
@@ -187,6 +191,141 @@
                             text-xs text-gray-400 flex gap-2">
                     <span class="text-base flex-shrink-0">🔒</span>
                     <span>Payment held in <strong class="text-cyan-400">escrow</strong> until you confirm the account. 48-hour review window.</span>
+                </div>
+
+                {{-- Share Buttons --}}
+                <div class="mb-4" x-data="{ copied: false }">
+                    <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3
+                                flex items-center gap-2">
+                        <i class="fa-solid fa-share-nodes text-indigo-400"></i>
+                        Share This Listing
+                    </div>
+
+                    <div class="flex flex-col gap-2">
+
+                        {{-- WhatsApp --}}
+                        <a href="https://api.whatsapp.com/send?text={{ urlencode($listing->title . ' — $' . number_format($listing->price, 2) . ' | GameTradeHub: ' . url()->current()) }}"
+                        target="_blank"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
+                                duration-200 border border-green-500/20 bg-green-500/5
+                                hover:bg-green-500/15 hover:border-green-500/40
+                                hover:shadow-lg hover:shadow-green-500/10
+                                hover:-translate-y-0.5">
+                            <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center
+                                        flex-shrink-0 shadow-lg shadow-green-500/30
+                                        group-hover:shadow-green-500/50 transition-all duration-200
+                                        group-hover:scale-110">
+                                <i class="fa-brands fa-whatsapp text-white text-base"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold text-green-400">WhatsApp</div>
+                                <div class="text-xs text-gray-500">Share with friends</div>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-green-500/50
+                                    text-xs group-hover:text-green-400 transition-colors"></i>
+                        </a>
+
+                        {{-- Telegram --}}
+                        <a href="https://t.me/share/url?url={{ urlencode(url()->current()) }}&text={{ urlencode($listing->title . ' on GameTradeHub') }}"
+                        target="_blank"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
+                                duration-200 border border-sky-500/20 bg-sky-500/5
+                                hover:bg-sky-500/15 hover:border-sky-500/40
+                                hover:shadow-lg hover:shadow-sky-500/10
+                                hover:-translate-y-0.5">
+                            <div class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center
+                                        flex-shrink-0 shadow-lg shadow-sky-500/30
+                                        group-hover:shadow-sky-500/50 transition-all duration-200
+                                        group-hover:scale-110">
+                                <i class="fa-brands fa-telegram text-white text-base"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold text-sky-400">Telegram</div>
+                                <div class="text-xs text-gray-500">Share to channel or chat</div>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-sky-500/50
+                                    text-xs group-hover:text-sky-400 transition-colors"></i>
+                        </a>
+
+                        {{-- Facebook --}}
+                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}"
+                        target="_blank"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
+                                duration-200 border border-blue-500/20 bg-blue-500/5
+                                hover:bg-blue-500/15 hover:border-blue-500/40
+                                hover:shadow-lg hover:shadow-blue-500/10
+                                hover:-translate-y-0.5">
+                            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center
+                                        flex-shrink-0 shadow-lg shadow-blue-500/30
+                                        group-hover:shadow-blue-500/50 transition-all duration-200
+                                        group-hover:scale-110">
+                                <i class="fa-brands fa-facebook-f text-white text-base"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold text-blue-400">Facebook</div>
+                                <div class="text-xs text-gray-500">Share to your timeline</div>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-blue-500/50
+                                    text-xs group-hover:text-blue-400 transition-colors"></i>
+                        </a>
+
+                        {{-- X / Twitter --}}
+                        <a href="https://twitter.com/intent/tweet?text={{ urlencode($listing->title . ' — $' . number_format($listing->price, 2)) }}&url={{ urlencode(url()->current()) }}"
+                        target="_blank"
+                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
+                                duration-200 border border-gray-600/30 bg-gray-800/50
+                                hover:bg-gray-800 hover:border-gray-500/50
+                                hover:shadow-lg hover:shadow-gray-500/10
+                                hover:-translate-y-0.5">
+                            <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center
+                                        flex-shrink-0 shadow-lg border border-gray-700
+                                        group-hover:border-gray-500 transition-all duration-200
+                                        group-hover:scale-110">
+                                <i class="fa-brands fa-x-twitter text-white text-base"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold text-gray-300">X (Twitter)</div>
+                                <div class="text-xs text-gray-500">Post to your feed</div>
+                            </div>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-gray-500/50
+                                    text-xs group-hover:text-gray-400 transition-colors"></i>
+                        </a>
+
+                        {{-- Copy Link --}}
+                        <button @click="
+                                navigator.clipboard.writeText('{{ url()->current() }}');
+                                copied = true;
+                                setTimeout(() => copied = false, 2500)"
+                                class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
+                                    duration-200 border w-full text-left
+                                    border-indigo-500/20 bg-indigo-500/5
+                                    hover:bg-indigo-500/15 hover:border-indigo-500/40
+                                    hover:shadow-lg hover:shadow-indigo-500/10
+                                    hover:-translate-y-0.5">
+                            <div class="w-8 h-8 rounded-lg flex items-center justify-center
+                                        flex-shrink-0 shadow-lg transition-all duration-200
+                                        group-hover:scale-110"
+                                :class="copied
+                                        ? 'bg-green-500 shadow-green-500/30'
+                                        : 'bg-indigo-600 shadow-indigo-500/30'">
+                                <i class="text-white text-base"
+                                :class="copied ? 'fa-solid fa-check' : 'fa-solid fa-link'"></i>
+                            </div>
+                            <div class="flex-1">
+                                <div class="text-xs font-bold transition-colors duration-200"
+                                    :class="copied ? 'text-green-400' : 'text-indigo-400'"
+                                    x-text="copied ? 'Link Copied!' : 'Copy Link'">
+                                </div>
+                                <div class="text-xs text-gray-500"
+                                    x-text="copied ? 'Ready to paste anywhere' : 'Copy direct link'">
+                                </div>
+                            </div>
+                            <i class="fa-solid fa-copy text-indigo-500/50 text-xs
+                                    group-hover:text-indigo-400 transition-colors"
+                            x-show="!copied"></i>
+                        </button>
+
+                    </div>
                 </div>
 
                 @auth

@@ -7,7 +7,7 @@ use App\Models\Listing;
 use App\Services\AuctionService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
-
+use Illuminate\Support\Facades\Auth;
 
 class AuctionController extends Controller
 {
@@ -79,7 +79,7 @@ class AuctionController extends Controller
     // Show create auction form
     public function create()
     {
-        if (!auth()->check()){
+        if (!Auth::check()){
             return redirect()->route('login');
         }
 
@@ -110,7 +110,7 @@ class AuctionController extends Controller
         $isFlagged  = false;
         $flagReason = null;
 
-        if (auth()->user()->created_at->diffInHours(now()) < 24) {
+        if (Auth::user()->created_at->diffInHours(now()) < 24) {
             $isFlagged  = true;
             $flagReason = 'New account — registered less than 24 hours ago';
         }
@@ -131,7 +131,7 @@ class AuctionController extends Controller
 
         $listing = Listing::create([
             ...$validated,
-            'user_id'     => auth()->id(),
+            'user_id'     => Auth::id(),
             'price'       => $validated['starting_price'],
             'status'      => 'active',  // instantly live
             'type'        => 'auction',
@@ -168,7 +168,7 @@ class AuctionController extends Controller
         try {
             $this->auctionService->placeBid(
                 $listing,
-                auth()->user(),
+                Auth::user(),
                 (float) $request->amount
             );
 
@@ -186,10 +186,10 @@ class AuctionController extends Controller
     // Show auctions the user is bidding on
     public function myBids()
     {
-        if (!auth()->check()){
+        if (!Auth::check()){
             return redirect()->route('login');
         }
-        $bids = auth()->user()
+        $bids = Auth::user()
             ->bids()
             ->with(['listing.game', 'listing.highestBidder'])
             ->latest()
