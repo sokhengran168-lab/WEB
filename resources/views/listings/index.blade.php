@@ -90,6 +90,7 @@
                 <div class="text-xs font-bold text-indigo-400 uppercase tracking-wide mb-1">
                     {{ $listing->game->name }}
                 </div>
+
                 <div class="font-bold text-sm leading-tight mb-2 line-clamp-2">
                     {{ $listing->title }}
                 </div>
@@ -112,6 +113,11 @@
                     <div class="text-lg font-bold text-green-400 font-mono">
                         ${{ number_format($listing->price, 2) }}
                     </div>
+                     @if($listing->seller->rating_avg > 0)
+                    <span class="text-xs text-yellow-400">
+                        ⭐ {{ number_format($listing->seller->rating_avg, 1) }}
+                    </span>
+                    @endif
                     <div class="flex items-center gap-1 text-xs text-gray-500">
                         👁️ {{ $listing->views_count }}
                     </div>

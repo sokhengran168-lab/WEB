@@ -347,7 +347,7 @@
                         </form>
                     </div>
                            {{-- Share buttons (only seller sees this) --}}
-                    <div class="mt-3 pt-3 border-t border-gray-800">
+                          {{--<div class="mt-3 pt-3 border-t border-gray-800">
                         <p class="text-xs text-gray-500 mb-2">🔗 Share your listing</p>
                         @php
                             $shareUrl = urlencode(route('listings.show', $listing));
@@ -374,7 +374,9 @@
                                 🔗 Copy Link
                             </button>
                         </div>
-                    </div>
+                    </div>   --}}
+
+                    
                     @else
                     {{-- Buy button --}}
                     <form method="POST" action="{{ route('transactions.store') }}">

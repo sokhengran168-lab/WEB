@@ -143,7 +143,7 @@ class User extends Authenticatable
     // Reviews this user has received as a seller
     public function reviews()
     {
-        return $this->hasMany(Review::class, 'seller_id')
+        return $this->hasMany(\App\Models\Review::class, 'seller_id')
                     ->where('is_visible', true)
                     ->latest();
     }
