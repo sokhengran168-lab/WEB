@@ -44,13 +44,13 @@
                 <option value="price_desc" {{ request('sort') === 'price_desc' ? 'selected' : '' }}>Price ↓</option>
                 <option value="popular"    {{ request('sort') === 'popular'    ? 'selected' : '' }}>Popular</option>
             </select>
-            <button type="submit"
+            {{-- <button type="submit"
                     class="bg-indigo-600 hover:bg-indigo-500 text-white px-5 py-2.5
                            rounded-xl text-sm font-semibold transition">
                 Search
-            </button>
+            </button> --}}
             @if(request()->hasAny(['search','game_id','platform','sort']))
-            <a href="{{ route('listings.index') }}"
+             <a href="{{ route('listings.index') }}"
                class="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2.5
                       rounded-xl text-sm transition">
                 Clear
@@ -141,6 +141,15 @@
     <div class="mt-6">
         {{ $listings->withQueryString()->links() }}
     </div>
+          <script>
+            // Auto-submit when dropdown changes
+                  document.querySelectorAll('select[name="game_id"], select[name="platform"], select[name="sort"]')
+                .forEach(select => {
+                    select.addEventListener('change', () => {
+                        select.closest('form').submit();
+                    });
+                });
+                 </script>
 
 </div>
 @endsection
