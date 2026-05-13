@@ -17,6 +17,24 @@ class ListingController extends Controller
     {
         $games = Game::where('is_active', true)->get();
 
+        // Feature listings for hero section
+        $featured = Listing::with(['game', 'seller', 'firstImage'])
+            ->where('status', 'active')
+            ->where('type', 'fixed')
+            ->where('is_featured', true)
+            ->latest()
+            ->take(3)
+            ->get();
+
+        // Live auction for homepage
+        $liveAuctions = Listing::with(['game', 'seller', 'firstImage', 'highestBidder'])
+            ->where('status', 'active')
+            ->where('type', 'auction')
+            ->where('auction_ends_at', '>', now())
+            ->latest()
+            ->take(4)
+            ->get();
+
         $listings = Listing::with(['game', 'seller', 'firstImage'])
             ->where('status', 'active')
             ->where('type', 'fixed')
@@ -42,7 +60,9 @@ class ListingController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        return view('listings.index', compact('listings', 'games'));
+        return view('listings.index', compact(
+            'listings', 'games', 'featured', 'liveAuctions'
+        ));
     }
 
     // Show single listing detail
