@@ -60,18 +60,18 @@
                     <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Level</div>
                     <div class="font-bold text-sm">{{ $listing->level ?? '—' }}</div>
                 </div>
-                <div class="bg-gray-900 border border-gray-800 rounded-xl p-3">
+                {{--  <div class="bg-gray-900 border border-gray-800 rounded-xl p-3">
                     <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Server</div>
                     <div class="font-bold text-sm">{{ $listing->server ?? '—' }}</div>
-                </div>
+                </div>  --}}
                 <div class="bg-gray-900 border border-gray-800 rounded-xl p-3">
                     <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Platform</div>
                     <div class="font-bold text-sm">{{ $listing->platform }}</div>
                 </div>
-                <div class="bg-gray-900 border border-gray-800 rounded-xl p-3">
+                {{--  <div class="bg-gray-900 border border-gray-800 rounded-xl p-3">
                     <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Account Age</div>
                     <div class="font-bold text-sm">{{ $listing->account_age ?? '—' }}</div>
-                </div>
+                </div> --}}
             </div>
 
             {{-- Description --}}
@@ -346,35 +346,7 @@
                             </button>
                         </form>
                     </div>
-                           {{-- Share buttons (only seller sees this) --}}
-                          {{--<div class="mt-3 pt-3 border-t border-gray-800">
-                        <p class="text-xs text-gray-500 mb-2">🔗 Share your listing</p>
-                        @php
-                            $shareUrl = urlencode(route('listings.show', $listing));
-                            $shareText = urlencode('Check out this listing: ' . $listing->title);
-                        @endphp
-                        <div class="flex flex-wrap gap-2">
-                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}"
-                            target="_blank"
-                            class="flex-1 text-center bg-blue-700 hover:bg-blue-600 text-white text-xs py-2 rounded-lg transition">
-                                📘 Facebook
-                            </a>
-                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}"
-                            target="_blank"
-                            class="flex-1 text-center bg-sky-600 hover:bg-sky-500 text-white text-xs py-2 rounded-lg transition">
-                                🐦 X / Twitter
-                            </a>
-                            <a href="https://api.whatsapp.com/send?text={{ $shareText }}%20{{ $shareUrl }}"
-                            target="_blank"
-                            class="flex-1 text-center bg-green-700 hover:bg-green-600 text-white text-xs py-2 rounded-lg transition">
-                                💬 WhatsApp
-                            </a>
-                            <button onclick="navigator.clipboard.writeText('{{ route('listings.show', $listing) }}'); this.textContent='✅ Copied!'; setTimeout(()=>this.textContent='🔗 Copy Link',2000)"
-                                    class="flex-1 text-center bg-gray-700 hover:bg-gray-600 text-white text-xs py-2 rounded-lg transition">
-                                🔗 Copy Link
-                            </button>
-                        </div>
-                    </div>   --}}
+             
 
                     
                     @else
@@ -383,9 +355,13 @@
                         @csrf
                         <input type="hidden" name="listing_id" value="{{ $listing->id }}">
                         <button type="submit"
-                                class="w-full bg-green-600 hover:bg-green-500 text-white
-                                       py-3 rounded-xl font-bold text-sm transition">
-                            🛒 Buy Now — ${{ number_format($listing->price, 2) }}
+
+                            <a href="{{ route('checkout.show', $listing) }}"
+                            class="block w-full text-center bg-green-600 hover:bg-green-500
+                                    text-white py-3 rounded-xl font-bold text-sm transition">
+                                🛒 Buy Now — ${{ number_format($listing->price, 2) }}
+                            </a>  
+                               
                         </button>
                     </form>
                     <div class="text-center text-xs text-gray-500 mt-2">

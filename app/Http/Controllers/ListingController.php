@@ -107,13 +107,10 @@ class ListingController extends Controller
         $validated = $request->validate([
             'game_id'           => 'required|exists:games,id',
             'title'             => 'required|string|max:255',
-            'description'       => 'required|string',
             'price'             => 'required|numeric|min:1',
             'rank'              => 'nullable|string|max:100',
             'level'             => 'nullable|integer|min:1',
-            'server'            => 'nullable|string|max:100',
             'platform'          => 'required|in:Mobile,PC,Console',
-            'account_age'       => 'nullable|string|max:100',
             'contact_telegram'  => 'nullable|string|max:500',
             'contact_whatsapp'  => 'nullable|string|max:20',
             'contact_discord'   => 'nullable|string|max:100',
@@ -222,16 +219,13 @@ class ListingController extends Controller
             $validated = $request->validate([
                 'game_id'     => 'required|exists:games,id',
                 'title'       => 'required|string|max:255',
-                'description' => 'required|string',
                 'starting_price' => 'required|numeric|min:1',
                 'bid_increment' => 'required|numeric|min:0.5',
                 'auction_ends_at' => 'required|date|after:now',
                 //'price'       => 'required|numeric|min:1',
                 'rank'        => 'nullable|string|max:100',
                 'level'       => 'nullable|integer|min:1',
-                'server'      => 'nullable|string|max:100',
                 'platform'    => 'required|in:Mobile,PC,Console',
-                'account_age' => 'nullable|string|max:100',
             ]);
             // Re-submit for admin approval after edit
             $listing->update([
@@ -243,13 +237,11 @@ class ListingController extends Controller
             $validated = $request->validate([
                 'game_id' =>'required|exists:games,id',
                 'title' => 'required|string|max:255',
-                'description' => 'required|string',
                 'price' => 'required|numeric|min:1',
                 'rank' => 'nullable|string|max:100',
                 'level' => 'nullable|integer|min:1',
-                'server' => 'nullable|string|max:100',
                 'platform' => 'required|in:Mobile,PC,Console',
-                'account_age' => 'nullable|string|max:100',
+               
             ]);
             $listing->update([
                 ...$validated,

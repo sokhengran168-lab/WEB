@@ -54,7 +54,7 @@
             <form method="GET" action="{{ route('home') }}"
                   class="flex gap-2 max-w-xl mx-auto mb-6">
                 <div class="relative flex-1">
-                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
+                    <span class="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400"></span>
                     <input type="text" name="search"
                            value="{{ request('search') }}"
                            placeholder="Search by game, rank, server..."

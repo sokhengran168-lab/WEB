@@ -62,9 +62,9 @@
                     @endforeach
                 </div>
                 <div class="mt-3">
-                    <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">
+                   {{--  <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">
                         Description
-                    </div>
+                    </div>Description--}}
                     <p class="text-sm text-gray-300 leading-relaxed">
                         {{ $listing->description }}
                     </p>

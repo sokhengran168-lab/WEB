@@ -11,7 +11,6 @@ class Listing extends Model
         'user_id',
         'game_id',
         'title',
-        'description',
         'price',
         // Adding this for scope auction
         // =============================
@@ -23,9 +22,7 @@ class Listing extends Model
         // =============================
         'rank',
         'level',
-        'server',
         'platform',
-        'account_age',
         'heroes_skins',
         'tags',
         'type',

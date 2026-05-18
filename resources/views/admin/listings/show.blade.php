@@ -40,10 +40,9 @@
                         'Game'        => $listing->game->name,
                         'Rank'        => $listing->rank ?? '—',
                         'Price'       => '$'.number_format($listing->price,2),
-                        'Server'      => $listing->server ?? '—',
                         'Platform'    => $listing->platform,
                         'Level'       => $listing->level ?? '—',
-                        'Account Age' => $listing->account_age ?? '—',
+                       
                     ] as $label => $value)
                     <div class="bg-gray-800 rounded-xl p-3">
                         <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">{{ $label }}</div>
@@ -51,10 +50,10 @@
                     </div>
                     @endforeach
                 </div>
-                <div class="mt-3">
+              {{--  <div class="mt-3">
                     <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Description</div>
                     <p class="text-sm text-gray-300 leading-relaxed">{{ $listing->description }}</p>
-                </div>
+                </div> --}} 
             </div>
 
             {{-- Screenshots --}}

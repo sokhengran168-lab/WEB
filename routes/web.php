@@ -184,3 +184,8 @@ Route::get('/sellers/{user}', [App\Http\Controllers\SellerProfileController::cla
 // Share routes — public
 Route::post('/share/{listing}', [App\Http\Controllers\ShareController::class, 'share'])
     ->name('listings.share');
+
+// Checkout
+Route::get('/checkout/{listing}',      [App\Http\Controllers\CheckoutController::class, 'show'])->name('checkout.show');
+Route::get('/checkout/{listing}/card', [App\Http\Controllers\CheckoutController::class, 'card'])->name('checkout.card');
+Route::post('/checkout/{listing}/pay', [App\Http\Controllers\CheckoutController::class, 'pay'])->name('checkout.pay');

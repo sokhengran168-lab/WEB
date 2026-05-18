@@ -13,7 +13,6 @@ class WalletLog extends Model
         'amount',
         'balance_after',
         'reference',
-        'description',
     ];
 
     protected $casts = [

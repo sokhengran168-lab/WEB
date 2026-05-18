@@ -51,9 +51,8 @@
                     'Game'        => $listing->game->name,
                     'Rank'        => $listing->rank ?? '—',
                     'Level'       => $listing->level ?? '—',
-                    'Server'      => $listing->server ?? '—',
                     'Platform'    => $listing->platform,
-                    'Account Age' => $listing->account_age ?? '—',
+                    
                 ] as $label => $value)
                 <div class="bg-gray-900 border border-gray-800 rounded-xl p-3">
                     <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">
@@ -64,13 +63,13 @@
                 @endforeach
             </div>
 
-            {{-- Description --}}
+            {{-- Description+
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
                 <h3 class="font-bold mb-3">📝 Description</h3>
                 <p class="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
                     {{ $listing->description }}
                 </p>
-            </div>
+            </div> --}}
 
             {{-- Bid History --}}
             <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">

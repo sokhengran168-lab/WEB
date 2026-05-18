@@ -90,12 +90,12 @@
                             </a>
                         </div>
                     </div>
-                    {{-- Wallet Balance --}}
+                    {{-- Wallet Balance 
                     <a href="{{ route('wallet.index') }}"
                        class="bg-yellow-500/10 border border-yellow-500/25 text-yellow-400
                               px-3 py-1.5 rounded-full text-xs font-bold hover:bg-yellow-500/20 transition">
                          ${{ number_format(auth()->user()->wallet_balance, 2) }}
-                    </a>
+                    </a>--}}
 
                     {{-- User Dropdown --}}
                     <div class="relative" x-data="{ open: false }">

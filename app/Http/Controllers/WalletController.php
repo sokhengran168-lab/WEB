@@ -36,7 +36,6 @@ class WalletController extends Controller
             userId:      Auth::id(),
             amount:      $request->amount,
             type:        'topup',
-            description: 'Wallet top-up'
         );
 
         return back()->with('success', '$' . number_format($request->amount, 2) . ' added to your wallet.');

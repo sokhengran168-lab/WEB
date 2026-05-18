@@ -48,23 +48,23 @@
                            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
                                   text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
-                <div>
+                {{-- <div>
                     <label class="block text-xs font-semibold text-gray-400 mb-1.5">Account Age</label>
                     <input type="text" name="account_age"
                            value="{{ old('account_age', $listing->account_age) }}"
                            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
                                   text-sm text-white focus:outline-none focus:border-indigo-500">
-                </div>
+                </div> --}}
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-                <div>
+                  {{--<div>
                     <label class="block text-xs font-semibold text-gray-400 mb-1.5">Server</label>
                     <input type="text" name="server"
                            value="{{ old('server', $listing->server) }}"
                            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
                                   text-sm text-white focus:outline-none focus:border-indigo-500">
-                </div>
+                </div> --}}
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 mb-1.5">Platform *</label>
                     <select name="platform"
@@ -95,15 +95,6 @@
                 @enderror
             </div>
 
-            <div>
-                <label class="block text-xs font-semibold text-gray-400 mb-1.5">Description *</label>
-                <textarea name="description" rows="4"
-                          class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
-                                 text-sm text-white focus:outline-none focus:border-indigo-500 resize-none">{{ old('description', $listing->description) }}</textarea>
-                @error('description')
-                <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
         </div>
 
         {{-- Auction Settings --}}

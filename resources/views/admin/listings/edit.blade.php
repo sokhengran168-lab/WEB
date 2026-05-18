@@ -51,23 +51,9 @@
                            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
                                   text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-1.5">Account Age</label>
-                    <input type="text" name="account_age"
-                           value="{{ old('account_age', $listing->account_age) }}"
-                           class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
-                                  text-sm text-white focus:outline-none focus:border-indigo-500">
-                </div>
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-1.5">Server</label>
-                    <input type="text" name="server"
-                           value="{{ old('server', $listing->server) }}"
-                           class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
-                                  text-sm text-white focus:outline-none focus:border-indigo-500">
-                </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 mb-1.5">Platform *</label>
                     <select name="platform"
@@ -98,16 +84,6 @@
                 @enderror
             </div>
 
-            <div class="mb-4">
-                <label class="block text-xs font-semibold text-gray-400 mb-1.5">Description *</label>
-                <textarea name="description" rows="4"
-                          class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
-                                 text-sm text-white focus:outline-none focus:border-indigo-500 resize-none">{{ old('description', $listing->description) }}</textarea>
-                @error('description')
-                <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
             <div>
                 <label class="block text-xs font-semibold text-gray-400 mb-1.5">Price (USD) *</label>
                 <div class="relative">
@@ -118,13 +94,6 @@
                            id="priceInput"
                            class="w-full bg-gray-800 border border-gray-700 rounded-xl pl-7 pr-3 py-2.5
                                   text-sm text-white focus:outline-none focus:border-indigo-500">
-                </div>
-                <div class="bg-green-500/5 border border-green-500/15 rounded-xl px-3 py-2 mt-2
-                            flex justify-between text-sm">
-                    <span class="text-gray-400">After 5% fee, you receive:</span>
-                    <strong class="text-green-400" id="payoutDisplay">
-                        ${{ number_format($listing->price * 0.95, 2) }}
-                    </strong>
                 </div>
                 @error('price')
                 <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
@@ -151,9 +120,6 @@
 
 @push('scripts')
 <script>
-document.getElementById('priceInput').addEventListener('input', function() {
-    const payout = (parseFloat(this.value) * 0.95 || 0).toFixed(2);
-    document.getElementById('payoutDisplay').textContent = '$' + payout;
-});
+// No payout preview needed for this form.
 </script>
 @endpush

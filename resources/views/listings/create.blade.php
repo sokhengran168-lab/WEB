@@ -19,7 +19,7 @@
             </div>
 
             <div class="mb-4">
-                <label class="block text-xs font-semibold text-gray-400 mb-1.5">Game *</label>
+                <label class="block text-xs font-semibold text-gray-400 mb-1.5">Game </label>
                 <select name="game_id"
                         class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
                                text-sm text-white focus:outline-none focus:border-indigo-500">
@@ -51,23 +51,10 @@
                            class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
                                   text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-1.5">Account Age</label>
-                    <input type="text" name="account_age" value="{{ old('account_age') }}"
-                           placeholder="e.g. 3 years"
-                           class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
-                                  text-sm text-white focus:outline-none focus:border-indigo-500">
-                </div>
+               
             </div>
 
             <div class="grid grid-cols-2 gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-1.5">Server</label>
-                    <input type="text" name="server" value="{{ old('server') }}"
-                           placeholder="e.g. SEA"
-                           class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
-                                  text-sm text-white focus:outline-none focus:border-indigo-500">
-                </div>
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 mb-1.5">Platform *</label>
                     <select name="platform"
@@ -102,17 +89,6 @@
                 @enderror
             </div>
 
-            <div class="mb-4">
-                <label class="block text-xs font-semibold text-gray-400 mb-1.5">Description *</label>
-                <textarea name="description" rows="4"
-                          placeholder="Describe the account in detail — heroes, skins, rank history, etc."
-                          class="w-full bg-gray-800 border border-gray-700 rounded-xl px-3 py-2.5
-                                 text-sm text-white focus:outline-none focus:border-indigo-500 resize-none">{{ old('description') }}</textarea>
-                @error('description')
-                <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                @enderror
-            </div>
-
             <div>
                 <label class="block text-xs font-semibold text-gray-400 mb-1.5">Price (USD) *</label>
                 <div class="relative">
@@ -123,16 +99,12 @@
                            class="w-full bg-gray-800 border border-gray-700 rounded-xl pl-7 pr-3 py-2.5
                                   text-sm text-white focus:outline-none focus:border-indigo-500">
                 </div>
-                <div class="bg-green-500/5 border border-green-500/15 rounded-xl px-3 py-2 mt-2
-                            flex justify-between text-sm">
-                    <span class="text-gray-400">After 5% fee, you receive:</span>
-                    <strong class="text-green-400" id="payoutDisplay">$0.00</strong>
-                </div>
+
                 @error('price')
                 <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
                 @enderror
             </div>
-        </div>
+        </div>  
 
         {{-- CONTACT INFO --}}
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-4">
@@ -145,8 +117,8 @@
 
             <div class="flex flex-col gap-3">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 bg-sky-500/15 rounded-lg flex items-center
-                                justify-center text-base flex-shrink-0">✈️</div>
+                   {{--  <div class="w-8 h-8 bg-sky-500/15 rounded-lg flex items-center
+                    justify-center text-base flex-shrink-0">✈️</div>  --}} 
                     <div class="flex-1">
                         <label class="block text-xs font-semibold text-gray-400 mb-1">Telegram</label>
                         <div class="relative">
@@ -161,7 +133,6 @@
                                           pl-7 pr-3 py-2 text-sm text-white
                                           focus:outline-none focus:border-sky-500">
                         </div>
-                        <p class="text-xs text-gray-600 mt-1">Paste username, t.me/username, or full link</p>
                     </div>
                 </div>
 
@@ -169,7 +140,6 @@
                     <div class="w-8 h-8 bg-green-500/15 rounded-lg flex items-center
                                 justify-center text-base flex-shrink-0">📱</div>
                     <div class="flex-1">
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">WhatsApp</label>
                         <div class="relative">
                             <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-500 text-sm">+</span>
                             <input type="text" name="contact_whatsapp"
@@ -185,15 +155,6 @@
                 <div class="flex items-center gap-3">
                     <div class="w-8 h-8 bg-indigo-500/15 rounded-lg flex items-center
                                 justify-center text-base flex-shrink-0">🎮</div>
-                    <div class="flex-1">
-                        <label class="block text-xs font-semibold text-gray-400 mb-1">Discord</label>
-                        <input type="text" name="contact_discord"
-                               value="{{ old('contact_discord') }}"
-                               placeholder="username#0000 or username"
-                               class="w-full bg-gray-800 border border-gray-700 rounded-xl
-                                      px-3 py-2 text-sm text-white
-                                      focus:outline-none focus:border-indigo-500">
-                    </div>
                 </div>
             </div>
         </div>
@@ -372,11 +333,6 @@
 
 @push('scripts')
 <script>
-document.getElementById('priceInput').addEventListener('input', function() {
-    const payout = (parseFloat(this.value) * 0.95 || 0).toFixed(2);
-    document.getElementById('payoutDisplay').textContent = '$' + payout;
-});
-
 document.getElementById('imageInput').addEventListener('change', function() {
     const preview = document.getElementById('imagePreview');
     preview.innerHTML = '';
