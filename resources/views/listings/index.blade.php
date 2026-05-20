@@ -309,9 +309,9 @@
                 : 0;
         @endphp
         @if($pendingOwnerCount > 0)
-        <div class="mb-6 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-4 text-sm text-yellow-100">
+         {{--  <div class="mb-6 rounded-2xl border border-yellow-500/20 bg-yellow-500/10 p-4 text-sm text-yellow-100">
             Note: your own listing(s) under review are still shown to you here but remain hidden from other buyers until approved.
-        </div>
+        </div>--}}
         @endif
 
         @forelse($listings as $listing)
