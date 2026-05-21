@@ -25,6 +25,6 @@ class TestCreate extends Command
      */
     public function handle()
     {
-        //
+        $this->info('TestCreate command executed.');
     }
 }
