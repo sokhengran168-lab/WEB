@@ -1,35 +1,32 @@
-FROM php:8.2-apache
+FROM php:8.2-cli
+
+WORKDIR /app
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
     git unzip curl libpng-dev libonig-dev libxml2-dev zip libzip-dev
 
-# Install PHP extensions required by Laravel
-RUN docker-php-ext-install pdo_mysql mbstring zip exif pcntl bcmath gd
-
-# Enable Apache rewrite
-RUN a2enmod rewrite
-
-WORKDIR /var/www/html
-
-# Copy project files
-COPY . .
+# Install PHP extensions
+RUN docker-php-ext-install pdo_mysql mbstring zip bcmath gd
 
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# ✅ Increase memory (IMPORTANT FIX)
+# Copy project files
+COPY . .
+
+# ✅ Fix missing .env during build
+RUN cp .env.example .env || true
+
+# ✅ Allow composer to run without memory error
 ENV COMPOSER_MEMORY_LIMIT=-1
 
-# Install Laravel dependencies
+# Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
 
-# Fix permissions
+# Permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Set Laravel public folder
-RUN sed -i 's!/var/www/html!/var/www/html/public!g' /etc/apache2/sites-available/000-default.conf
+EXPOSE 8080
 
-EXPOSE 80
-
-CMD php artisan migrate --force && apache2-foreground
+CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=$PORT
