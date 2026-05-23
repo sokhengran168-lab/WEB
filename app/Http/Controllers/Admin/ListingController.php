@@ -30,22 +30,27 @@ class ListingController extends Controller
         return view('admin.listings.show', compact('listing'));
     }
 
-    // Approve a listing — makes it live
+    /**
+     * Approve a listing
+     */
     public function approve(Listing $listing)
     {
         $listing->update([
-            'status'      => 'active',
+            'status'      => 'active',     // Recommended: use 'active' instead of 'approved'
             'admin_notes' => null,
         ]);
 
-        return back()->with('success', 'Listing approved and is now live.');
+        return redirect()->route('admin.listings.index')
+            ->with('success', 'Listing approved and is now live.');
     }
 
-    // Reject a listing with a reason
+    /**
+     * Reject a listing with reason
+     */
     public function reject(Request $request, Listing $listing)
     {
         $request->validate([
-            'admin_notes' => 'required|string',
+            'admin_notes' => 'required|string|max:1000',
         ]);
 
         $listing->update([
@@ -53,7 +58,8 @@ class ListingController extends Controller
             'admin_notes' => $request->admin_notes,
         ]);
 
-        return back()->with('success', 'Listing rejected.');
+        return redirect()->route('admin.listings.index')
+            ->with('success', 'Listing has been rejected.');
     }
 
     // Remove a listing from marketplace

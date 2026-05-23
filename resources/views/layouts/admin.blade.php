@@ -54,17 +54,14 @@
                 @endif
             </a>
 
-            <a href="{{ route('admin.transactions.index', ['status' => 'disputed']) }}"
+            <a href="{{ route('admin.transactions.index', ['status' => 'paid']) }}"
             class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm mb-1
-                    {{ request()->routeIs('admin.transactions.*')
-                        ? 'bg-sky-600/20 text-sky-400 font-semibold'
-                        : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
-                ⚖️ Disputes
-                @php $disputes = \App\Models\Transaction::where('status','disputed')->count() @endphp
-                @if($disputes > 0)
-                <span class="ml-auto bg-red-500 text-white text-xs
-                            px-1.5 py-0.5 rounded-full font-bold">
-                    {{ $disputes }}
+                    text-gray-400 hover:bg-gray-800 hover:text-white">
+                💳 Verify Payments
+                @php $pendingPay = \App\Models\Transaction::where('status','paid')->count() @endphp
+                @if($pendingPay > 0)
+                <span class="ml-auto bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full font-bold">
+                    {{ $pendingPay }}
                 </span>
                 @endif
             </a>

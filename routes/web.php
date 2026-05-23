@@ -82,10 +82,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/transactions', [TransactionController::class, 'store'])
         ->name('transactions.store')
         ->middleware('throttle:5,1');
+    Route::get('/transactions/{transaction}/payment', [TransactionController::class, 'payment'])
+        ->name('transactions.payment');
+    Route::post('/transactions/{transaction}/paid', [TransactionController::class, 'markPaid'])
+        ->name('transactions.paid');
     Route::post('/transactions/{transaction}/confirm', [TransactionController::class, 'confirm'])
         ->name('transactions.confirm');
     Route::post('/transactions/{transaction}/dispute', [TransactionController::class, 'dispute'])
         ->name('transactions.dispute');
+    Route::post('/transactions/{transaction}/cancel', [TransactionController::class, 'cancel'])
+        ->name('transactions.cancel');
     Route::get('/transactions/{transaction}', [TransactionController::class, 'show'])
         ->name('transactions.show');
 
@@ -148,10 +154,15 @@ Route::middleware(['auth', 'admin'])
     // Transactions
     Route::get('/transactions', [AdminTransactionController::class, 'index'])
         ->name('transactions.index');
+    Route::patch('/transactions/{transaction}/confirm-payment', [AdminTransactionController::class, 'confirmPayment'])
+        ->name('transactions.confirm-payment');
     Route::patch('/transactions/{transaction}/release', [AdminTransactionController::class, 'releaseEscrow'])
         ->name('transactions.release');
     Route::patch('/transactions/{transaction}/refund', [AdminTransactionController::class, 'refund'])
         ->name('transactions.refund');
+    // Approve Listing
+    Route::patch('/admin/listings/{listing}/approve', [App\Http\Controllers\Admin\ListingController::class, 'approve'])
+        ->name('admin.listings.approve');
 
     // Reports
     Route::get('/reports', [AdminReportController::class, 'index'])

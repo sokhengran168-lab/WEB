@@ -26,6 +26,7 @@ class DashboardController extends Controller
                                              ->whereDate('created_at', today())
                                              ->sum('platform_fee'),
             'total_transactions' => Transaction::count(),
+            'pending_payments' => Transaction::where('status', 'paid')->count(),
         ];
 
         $recent_reports = Report::with(['listing.game', 'reporter'])

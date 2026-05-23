@@ -1,4 +1,8 @@
+<<<<<<< Updated upstream
 {{-----@extends('layouts.app')
+=======
+{{-- @extends('layouts.app')
+>>>>>>> Stashed changes
 @section('title', 'My Wallet')
 
 @section('content')
@@ -84,5 +88,10 @@
         </div>
     </div>
 
+<<<<<<< Updated upstream
   {{--</div>---}}
   {{--@endsection ----}}
+=======
+</div>
+@endsection --}}
+>>>>>>> Stashed changes

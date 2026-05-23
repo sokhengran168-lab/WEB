@@ -20,6 +20,12 @@ class Transaction extends Model
         'review_deadline',
         'buyer_confirmed_at',
         'escrow_released_at',
+        'payment_reference',
+        'bank_name',
+        'bank_account_name',
+        'buyer_paid_at',
+        'admin_confirmed_at',
+        'payment_note',
     ];
 
     protected $casts = [
@@ -29,6 +35,9 @@ class Transaction extends Model
         'review_deadline'    => 'datetime',
         'buyer_confirmed_at' => 'datetime',
         'escrow_released_at' => 'datetime',
+        'buyer_paid_at' => 'datetime',
+        'admin_paid_at' => 'datetime',
+        'admin_confirmed_at' => 'datetime',
     ];
     // The listing being sold
     public function listing(){
@@ -67,5 +76,20 @@ class Transaction extends Model
     public function hasReview(): bool
     {
         return $this->review()->exists();
+    }
+
+    // Is waiting for buyer to pay?
+    public function isPendingPayment(): bool {
+        return $this->status === 'pending';
+    }
+
+    // Has buyer clicked "I have paid" ?
+    public function isBuyerPaid(): bool{
+        return $this->status === 'paid';
+    }
+
+    // Has admin confirmed payment?
+    public function isEscrow(): bool {
+        return $this->status === 'escrow';
     }
 }

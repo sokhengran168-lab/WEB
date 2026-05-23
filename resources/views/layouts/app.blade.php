@@ -73,8 +73,8 @@
                         <button @click="open = !open"
                                 class="flex items-center gap-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500
                                     text-white text-sm font-semibold rounded-lg transition">
-                            + Sell Item
-                            <span class="text-xs">▾</span>
+                            New
+                            <span class="text-xs">+</span>
                         </button>
                         <div x-show="open"
                             @click.outside="open = false"
@@ -82,20 +82,14 @@
                                     rounded-xl shadow-xl py-1 z-50">
                             <a href="{{ route('listings.create') }}"
                             class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                                Fixed Price
+                                Sell Account
                             </a>
                             <a href="{{ route('auctions.create') }}"
                             class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                                Auction
+                                Create Auction
                             </a>
                         </div>
                     </div>
-                    {{-- Wallet Balance 
-                    <a href="{{ route('wallet.index') }}"
-                       class="bg-yellow-500/10 border border-yellow-500/25 text-yellow-400
-                              px-3 py-1.5 rounded-full text-xs font-bold hover:bg-yellow-500/20 transition">
-                         ${{ number_format(auth()->user()->wallet_balance, 2) }}
-                    </a>--}}
 
                     {{-- User Dropdown --}}
                     <div class="relative" x-data="{ open: false }">

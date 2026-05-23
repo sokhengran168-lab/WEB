@@ -5,14 +5,29 @@
 
     <div class="flex items-center justify-between mb-5">
         <h1 class="text-2xl font-bold">💳 Transactions</h1>
+        {{-- Filter tabs --}}
         <div class="flex gap-2">
-            @foreach(['' => 'All', 'escrow' => '🔒 Escrow', 'completed' => '✅ Done', 'disputed' => '⚠️ Disputed'] as $status => $label)
+            @foreach([
+                'paid'      => '💳 Pending Verify',
+                'escrow'    => '🔒 Escrow',
+                'completed' => '✅ Done',
+                'disputed'  => '⚠️ Disputed',
+                ''          => 'All',
+            ] as $status => $label)
             <a href="{{ route('admin.transactions.index', $status ? ['status' => $status] : []) }}"
-               class="px-3 py-1.5 rounded-lg text-xs font-semibold transition
-                      {{ request('status', '') === $status
-                         ? 'bg-sky-600 text-white'
-                         : 'bg-gray-800 text-gray-400 hover:text-white' }}">
+            class="px-3 py-1.5 rounded-lg text-xs font-semibold transition
+                    {{ request('status', 'paid') === $status
+                        ? 'bg-sky-600 text-white'
+                        : 'bg-gray-800 text-gray-400 hover:text-white' }}">
                 {{ $label }}
+                @if($status === 'paid')
+                @php $paidCount = \App\Models\Transaction::where('status','paid')->count() @endphp
+                @if($paidCount > 0)
+                <span class="bg-red-500 text-white text-xs px-1.5 py-0.5 rounded-full ml-1">
+                    {{ $paidCount }}
+                </span>
+                @endif
+                @endif
             </a>
             @endforeach
         </div>
@@ -62,22 +77,30 @@
                     </td>
                     <td class="px-4 py-3">
                         <div class="flex gap-2">
-                            @if($txn->status === 'disputed')
+                            @if($txn->status === 'paid')
                             <form method="POST"
-                                  action="{{ route('admin.transactions.release', $txn) }}"
-                                  onsubmit="return confirm('Release escrow to seller?')">
+                                action="{{ route('admin.transactions.confirm-payment', $txn) }}">
                                 @csrf @method('PATCH')
                                 <button class="text-xs bg-green-600/20 hover:bg-green-600/40
-                                               text-green-400 px-2 py-1 rounded-lg transition">
+                                            text-green-400 px-2 py-1 rounded-lg transition">
+                                    ✓ Confirm Payment
+                                </button>
+                            </form>
+                            @endif
+                            @if($txn->status === 'disputed')
+                            <form method="POST"
+                                action="{{ route('admin.transactions.release', $txn) }}">
+                                @csrf @method('PATCH')
+                                <button class="text-xs bg-cyan-600/20 hover:bg-cyan-600/40
+                                            text-cyan-400 px-2 py-1 rounded-lg transition">
                                     Release
                                 </button>
                             </form>
                             <form method="POST"
-                                  action="{{ route('admin.transactions.refund', $txn) }}"
-                                  onsubmit="return confirm('Refund buyer?')">
+                                action="{{ route('admin.transactions.refund', $txn) }}">
                                 @csrf @method('PATCH')
                                 <button class="text-xs bg-yellow-600/20 hover:bg-yellow-600/40
-                                               text-yellow-400 px-2 py-1 rounded-lg transition">
+                                            text-yellow-400 px-2 py-1 rounded-lg transition">
                                     Refund
                                 </button>
                             </form>

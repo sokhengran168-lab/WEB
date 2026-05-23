@@ -12,11 +12,14 @@
         </div>
         @php
             $colors = [
-                'pending'   => 'bg-gray-500/10 text-gray-400 border-gray-500/20',
-                'escrow'    => 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-                'completed' => 'bg-green-500/10 text-green-400 border-green-500/20',
-                'disputed'  => 'bg-red-500/10 text-red-400 border-red-500/20',
-                'refunded'  => 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+                'pending'         => 'bg-orange-500/10 text-orange-400 border-orange-500/20',
+                'paid'            => 'bg-blue-500/10 text-blue-400 border-blue-500/20',
+                'escrow'          => 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+                'completed'       => 'bg-green-500/10 text-green-400 border-green-500/20',
+                'disputed'        => 'bg-red-500/10 text-red-400 border-red-500/20',
+                'refunded'        => 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20',
+                'cancelled'       => 'bg-gray-500/10 text-gray-400 border-gray-500/20',
+                'reserved'        => 'bg-purple-500/10 text-purple-400 border-purple-500/20',
             ];
             $color = $colors[$transaction->status] ?? 'bg-gray-500/10 text-gray-400';
         @endphp
@@ -84,39 +87,98 @@
             </div>
 
             {{-- Action Box --}}
-            @if($transaction->status === 'escrow' && $transaction->buyer_id === auth()->id())
+            @if($transaction->status === 'pending' && $transaction->buyer_id === auth()->id())
+            <div class="bg-orange-500/5 border border-orange-500/20 rounded-xl p-4">
+                <div class="font-bold mb-2">⏳ Awaiting Your Payment</div>
+                <p class="text-sm text-gray-400 mb-3">
+                    Please complete your bank transfer to proceed.
+                </p>
+                <a href="{{ route('transactions.payment', $transaction) }}"
+                class="block w-full bg-orange-600 hover:bg-orange-500 text-white
+                        text-center py-2.5 rounded-xl text-sm font-bold transition">
+                    🏦 View Payment Instructions
+                </a>
+            </div>
+
+            @elseif($transaction->status === 'paid' && $transaction->buyer_id === auth()->id())
+            <div class="bg-blue-500/5 border border-blue-500/20 rounded-xl p-4">
+                <div class="font-bold mb-1">🕐 Payment Submitted</div>
+                <p class="text-sm text-gray-400">
+                    Admin is verifying your payment. This usually takes 1-3 hours.
+                    We'll notify you once confirmed.
+                </p>
+                @if($transaction->payment_note)
+                <div class="bg-gray-800 rounded-xl px-3 py-2 mt-2 text-xs text-gray-400">
+                    Your note: {{ $transaction->payment_note }}
+                </div>
+                @endif
+            </div>
+
+            @elseif($transaction->status === 'escrow' && $transaction->buyer_id === auth()->id())
             <div class="bg-cyan-500/5 border border-cyan-500/20 rounded-xl p-4">
                 <div class="flex items-center justify-between mb-2">
-                    <div class="font-bold">⏳ Awaiting Your Confirmation</div>
+                    <div class="font-bold">✅ Payment Confirmed — Check Your Account</div>
                     @if($transaction->review_deadline)
                     <div class="text-right">
-                        <div class="text-xs text-gray-400">Deadline</div>
+                        <div class="text-xs text-gray-400">Confirm by</div>
                         <div class="text-cyan-400 font-bold text-sm">
-                            {{ $transaction->review_deadline->format('M d, Y H:i') }}
+                            {{ $transaction->review_deadline->format('M d, H:i') }}
                         </div>
                     </div>
                     @endif
                 </div>
-                <p class="text-sm text-gray-400 mb-4 leading-relaxed">
-                    Test the account thoroughly. If everything is correct, confirm to release payment.
-                    If there is an issue, raise a dispute.
+                <p class="text-sm text-gray-400 mb-4">
+                    The seller has been notified. Contact them to receive your account details,
+                    then confirm receipt to release payment.
                 </p>
+
+                {{-- Show seller contact --}}
+                @if($transaction->listing->contact_telegram ||
+                    $transaction->listing->contact_whatsapp ||
+                    $transaction->listing->contact_discord)
+                <div class="bg-gray-800 rounded-xl p-3 mb-3">
+                    <div class="text-xs text-gray-500 mb-2">Contact Seller</div>
+                    @if($transaction->listing->contact_telegram)
+                    <a href="https://t.me/{{ $transaction->listing->contact_telegram }}"
+                    target="_blank"
+                    class="flex items-center gap-2 text-sky-400 hover:text-sky-300
+                            text-sm mb-1 transition">
+                        ✈️ t.me/{{ $transaction->listing->contact_telegram }}
+                    </a>
+                    @endif
+                    @if($transaction->listing->contact_whatsapp)
+                    <a href="https://wa.me/{{ $transaction->listing->contact_whatsapp }}"
+                    target="_blank"
+                    class="flex items-center gap-2 text-green-400 hover:text-green-300
+                            text-sm mb-1 transition">
+                        📱 +{{ $transaction->listing->contact_whatsapp }}
+                    </a>
+                    @endif
+                    @if($transaction->listing->contact_discord)
+                    <div class="text-indigo-400 text-sm">
+                        🎮 {{ $transaction->listing->contact_discord }}
+                    </div>
+                    @endif
+                </div>
+                @endif
+
                 <div class="flex gap-3">
                     <form method="POST"
-                          action="{{ route('transactions.confirm', $transaction) }}"
-                          onsubmit="return confirm('Confirm receipt and release payment to seller?')">
+                        action="{{ route('transactions.confirm', $transaction) }}"
+                        onsubmit="return confirm('Confirm you received the account and release payment?')">
                         @csrf
                         <button class="bg-green-600 hover:bg-green-500 text-white
-                                       px-5 py-2.5 rounded-xl text-sm font-bold transition">
+                                    px-5 py-2.5 rounded-xl text-sm font-bold transition">
                             ✅ Confirm Receipt
                         </button>
                     </form>
                     <form method="POST"
-                          action="{{ route('transactions.dispute', $transaction) }}"
-                          onsubmit="return confirm('Raise a dispute? Admin will review within 48 hours.')">
+                        action="{{ route('transactions.dispute', $transaction) }}"
+                        onsubmit="return confirm('Raise a dispute? Admin will review within 48 hours.')">
                         @csrf
                         <button class="bg-red-600/20 hover:bg-red-600/40 text-red-400
-                                       border border-red-500/30 px-5 py-2.5 rounded-xl text-sm font-bold transition">
+                                    border border-red-500/30 px-5 py-2.5
+                                    rounded-xl text-sm font-bold transition">
                             ⚠️ Raise Dispute
                         </button>
                     </form>

@@ -440,7 +440,7 @@
                     </div>
              
 
-                    
+
                     @else
                     {{-- Buy button --}}
                     <form method="POST" action="{{ route('transactions.store') }}">
@@ -457,10 +457,7 @@
                         </button>
                     </form>
                     <div class="text-center text-xs text-gray-500 mt-2">
-                        Your balance:
-                        <strong class="text-yellow-400">
-                            ${{ number_format(auth()->user()->wallet_balance, 2) }}
-                        </strong>
+                        🏦 Pay via bank transfer · Escrow protected
                     </div>
                     <div class="mt-3 pt-3 border-t border-gray-800 text-center">
                         <a href="{{ route('listings.report', $listing) }}"

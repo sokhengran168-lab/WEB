@@ -18,31 +18,21 @@ class EscrowService
     {
         return DB::transaction(function () use ($transaction) {
 
-            // Deduct from buyer wallet
-            $this->wallet->debit(
-                userId:      $transaction->buyer_id,
-                amount:      $transaction->amount,
-                type:        'purchase',
-                reference:   $transaction->transaction_code,
-                description: 'Purchase: ' . $transaction->listing->title
-            );
-
-            // Create the escrow record
-            $escrowLog = EscrowLog::create([
+            // Create escrow log
+            EscrowLog::create([
                 'transaction_id' => $transaction->id,
-                'held_amount'    => $transaction->amount,
-                'status'         => 'held',
-                'held_at'        => now(),
+                'held_amount' => $transaction->amount,
+                'status' => 'held',
+                'held_at' => now(),
             ]);
 
             // Update transaction status to escrow
-            // Give buyer 48 hours to confirm the account
             $transaction->update([
                 'status'          => 'escrow',
                 'review_deadline' => now()->addHours(48),
             ]);
 
-            return $escrowLog;
+            $transaction->listing->update(['status' => 'sold']);
         });
     }
 
@@ -89,22 +79,15 @@ class EscrowService
     {
         DB::transaction(function () use ($transaction) {
 
-            // Refund full amount back to buyer
-            $this->wallet->credit(
-                userId:      $transaction->buyer_id,
-                amount:      $transaction->amount,
-                type:        'refund',
-                reference:   $transaction->transaction_code,
-                description: 'Refund: ' . $transaction->listing->title
-            );
-
-            // Mark escrow as refunded
-            $transaction->escrowLog->update([
-                'status'      => 'refunded',
-                'released_by' => 'admin',
-                'released_at' => now(),
-            ]);
-
+            // Update escrow log
+            $escrowLog = $transaction->escrowLog;
+            if ($escrowLog) {
+                $escrowLog->update([
+                    'status'      => 'refunded',
+                    'released_by' => 'admin',
+                    'released_at' => now(),
+                ]);
+            }
             // Mark transaction as refunded
             $transaction->update(['status' => 'refunded']);
 
