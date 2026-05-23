@@ -66,7 +66,7 @@
                     <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Level</div>
                     <div class="font-bold text-sm">{{ $listing->level ?? '—' }}</div>
                 </div>
-                
+
                 <div class="bg-gray-900 border border-gray-800 rounded-xl p-3">
                     <div class="text-xs text-gray-500 uppercase tracking-wide mb-1">Platform</div>
                     <div class="font-bold text-sm">{{ $listing->platform }}</div>
@@ -166,7 +166,7 @@
                 </div>
                 @endif
             {{-- Description --}}
-            
+
             {{-- <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
                 <h3 class="font-bold mb-3">📝 Description</h3>
                 <p class="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
@@ -438,7 +438,7 @@
                             </button>
                         </form>
                     </div>
-             
+
 
 
                     @else
@@ -452,8 +452,8 @@
                             class="block w-full text-center bg-green-600 hover:bg-green-500
                                     text-white py-3 rounded-xl font-bold text-sm transition">
                                 🛒 Buy Now — ${{ number_format($listing->price, 2) }}
-                            </a>  
-                               
+                            </a>
+
                         </button>
                     </form>
                     <div class="text-center text-xs text-gray-500 mt-2">
