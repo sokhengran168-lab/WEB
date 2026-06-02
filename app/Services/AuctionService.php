@@ -141,6 +141,6 @@ class AuctionService
             );
         }
 
-        // No wallet check needed — winner pays by card after auction ends
+        // — winner pays by card after auction ends
     }
 }
