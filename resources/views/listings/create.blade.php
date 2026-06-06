@@ -90,7 +90,7 @@
                     <span class="text-gray-400">You will receive:</span>
                     <strong class="text-green-400" id="payoutDisplay">$0.00</strong>
                 </div>
-            </div>--}} 
+            </div>--}}
         </div>
 
         {{-- CONTACT --}}

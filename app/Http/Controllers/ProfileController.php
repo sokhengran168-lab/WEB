@@ -28,12 +28,23 @@ class ProfileController extends Controller
             'whatsapp'           => 'nullable|string|max:20',
             'discord'            => 'nullable|string|max:100',
             'line_id'            => 'nullable|string|max:100',
+            'avatar'             => 'nullable|image|max:2048'
         ]);
 
         // Check if profile is completed
         $profileCompleted = $request->full_name
             && $request->country
             && $request->phone_number;
+
+                        $avatarUrl = $user->avatar; // keep old avatar
+
+            if ($request->hasFile('avatar')) {
+                $upload = cloudinary()->uploadApi()->upload(
+                    $request->file('avatar')->getRealPath()
+                );
+
+                $avatarUrl = $upload['secure_url'];
+            }
 
         $user->update([
             'name'               => $request->name,
@@ -48,6 +59,7 @@ class ProfileController extends Controller
             'discord'            => $request->discord,
             'line_id'            => $request->line_id,
             'profile_completed'  => $profileCompleted,
+            'avatar'             => $avatarUrl,
         ]);
 
         return back()->with('success', 'Profile updated successfully.');

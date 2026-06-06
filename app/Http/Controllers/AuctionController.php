@@ -93,13 +93,18 @@ class AuctionController extends Controller
         $validated = $request->validate([
             'game_id'         => 'required|exists:games,id',
             'title'           => 'required|string|max:255',
+            'description'     => 'required|string',        // ← add
             'starting_price'  => 'required|numeric|min:1',
             'bid_increment'   => 'required|numeric|min:0.5',
             'auction_ends_at' => 'required|date|after:+1 hour',
             'rank'            => 'nullable|string|max:100',
             'level'           => 'nullable|integer|min:1',
+            'server'          => 'nullable|string|max:100', // ← add
             'platform'        => 'required|in:Mobile,PC,Console',
-            
+            'account_age'     => 'nullable|string|max:100', // ← add
+            'contact_telegram'=> 'nullable|string|max:255', // ← add
+            'contact_whatsapp'=> 'nullable|string|max:20',  // ← add
+            'contact_discord' => 'nullable|string|max:100', // ← add
             'images'          => 'required|array|min:1',
             'images.*'        => 'image|mimes:jpg,jpeg,png,webp|max:3072',
         ]);
@@ -138,8 +143,27 @@ class AuctionController extends Controller
             'flagged_at'  => $isFlagged ? now() : null,
         ]);
 
+        // foreach ($request->file('images', []) as $index => $image) {
+        //     $path = $image->store('listings/' . $listing->id, 'public');
+        //     $listing->images()->create([
+        //         'image_path' => $path,
+        //         'is_proof'   => true,
+        //         'sort_order' => $index,
+        //     ]);
+        // }
+
         foreach ($request->file('images', []) as $index => $image) {
-            $path = $image->store('listings/' . $listing->id, 'public');
+            // Upload to Cloudinary if configured, else local
+            if (config('cloudinary.cloud_url')) {
+                $result = cloudinary()->upload($image->getRealPath(), [
+                    'folder'       => 'gametradehub/listings/' . $listing->id,
+                    'resource_type'=> 'image',
+                ]);
+                $path = $result->getSecurePath();
+            } else {
+                $path = $image->store('listings/' . $listing->id, 'public');
+            }
+
             $listing->images()->create([
                 'image_path' => $path,
                 'is_proof'   => true,

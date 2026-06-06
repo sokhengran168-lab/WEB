@@ -7,7 +7,6 @@ use Illuminate\Support\Facades\Storage;
 
 class ListingImage extends Model
 {
-    //
     protected $fillable = [
         'listing_id',
         'image_path',
@@ -19,16 +18,20 @@ class ListingImage extends Model
         'is_proof' => 'boolean',
     ];
 
-     // This image belongs to a listing
     public function listing()
     {
         return $this->belongsTo(Listing::class);
     }
 
-    // Get the full URL of the image
-    public function getUrlAttribute()
+    // Smart URL — works for both Cloudinary and local storage
+    public function getUrlAttribute(): string
     {
-        return Storage::url($this->image_path);
-    }
+        // Already a full Cloudinary/external URL
+        if (str_starts_with($this->image_path, 'http')) {
+            return $this->image_path;
+        }
 
+        // Fallback to local storage
+        return Storage::disk('public')->url($this->image_path);
+    }
 }

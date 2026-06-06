@@ -119,11 +119,12 @@ class ListingController extends Controller
     {
         $validated = $request->validate([
             'game_id'           => 'required|exists:games,id',
+            'description' => 'required|string',
             'title'             => 'required|string|max:255',
             'price'             => 'required|numeric|min:1',
             'rank'              => 'nullable|string|max:100',
             'level'             => 'nullable|integer|min:1',
-            'platform'          => 'required|in:Mobile,PC,Console',           
+            'platform'          => 'required|in:Mobile,PC,Console',
             'contact_whatsapp'  => 'nullable|string|max:20',
             'contact_discord'   => 'nullable|string|max:100',
             'seller_phone'      => 'nullable|string|max:20',
@@ -206,14 +207,40 @@ class ListingController extends Controller
             'flagged_at'  => $isFlagged ? now() : null,
         ]);
 
+        // foreach ($request->file('images', []) as $index => $image) {
+        //     $path = $image->store('listings/' . $listing->id, 'public');
+        //     $listing->images()->create([
+        //         'image_path' => $path,
+        //         'is_proof'   => true,
+        //         'sort_order' => $index,
+        //     ]);
+        // }
+
         foreach ($request->file('images', []) as $index => $image) {
-            $path = $image->store('listings/' . $listing->id, 'public');
-            $listing->images()->create([
-                'image_path' => $path,
-                'is_proof'   => true,
-                'sort_order' => $index,
-            ]);
-        }
+
+    if (config('filesystems.disks.cloudinary.url')) {
+
+        $result = cloudinary()->uploadApi()->upload(
+            $image->getRealPath(),
+            [
+                'folder' => 'gametradehub/listings/' . $listing->id,
+                'resource_type' => 'image',
+            ]
+        );
+
+        $path = $result['secure_url'];
+
+    } else {
+        // fallback to local
+        $path = $image->store('listings/' . $listing->id, 'public');
+    }
+
+    $listing->images()->create([
+        'image_path' => $path,
+        'is_proof'   => true,
+        'sort_order' => $index,
+    ]);
+}
 
         $message = $isFlagged
             ? 'Listing is live! Note: it has been flagged for admin review.'
@@ -223,6 +250,9 @@ class ListingController extends Controller
             ->route('dashboard')
             ->with('success', $message);
     }
+
+
+
 
     // Show edit form
     public function edit(Listing $listing)
@@ -271,7 +301,7 @@ class ListingController extends Controller
                 'rank' => 'nullable|string|max:100',
                 'level' => 'nullable|integer|min:1',
                 'platform' => 'required|in:Mobile,PC,Console',
-               
+
             ]);
             $listing->update([
                 ...$validated,
@@ -290,8 +320,20 @@ class ListingController extends Controller
         $this->authorize('delete', $listing);
 
         // Delete all images from storage
+        // foreach ($listing->images as $image) {
+        //     Storage::disk('public')->delete($image->image_path);
+        // }
+
         foreach ($listing->images as $image) {
-            Storage::disk('public')->delete($image->image_path);
+            if (str_starts_with($image->image_path, 'http') && config('filesystems.disks.cloudinary.url')) {
+                // Extract public_id from Cloudinary URL and delete
+                preg_match('/upload\/(?:v\d+\/)?(.+?)(?:\.\w+)?$/', $image->image_path, $matches);
+                if (!empty($matches[1])) {
+                    cloudinary()->uploadApi()->destroy($matches[1]);
+                }
+            } else {
+                Storage::disk('public')->delete($image->image_path);
+            }
         }
 
         $listing->delete();
