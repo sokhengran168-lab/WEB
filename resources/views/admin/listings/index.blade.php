@@ -3,8 +3,23 @@
 
 @section('content')
 
+    @if(request('filter') === 'flagged')
+        <div class="mb-4 px-4 py-3 rounded-xl bg-yellow-500/10 border border-yellow-500/30 text-yellow-400 font-semibold">
+            🚩 Viewing Flagged Listings
+        </div>
+    @endif
+
+
     <div class="flex items-center justify-between mb-5">
-        <h1 class="text-2xl font-bold">🛒 Manage Listings</h1>
+        <h1 class="text-2xl font-bold">
+            @if(request('filter') === 'flagged')
+                🚩 Flagged Listings
+            @elseif(request('status'))
+                {{ ucfirst(request('status')) }} Listings
+            @else
+                🛒 Manage Listings
+            @endif
+        </h1>
         <div class="flex gap-2">
             @foreach(['pending' => '⏳ Pending', 'active' => '✅ Active', 'rejected' => '❌ Rejected', 'sold' => '🏷️ Sold'] as $status => $label)
             <a href="{{ route('admin.listings.index', ['status' => $status]) }}"
@@ -32,16 +47,33 @@
             </thead>
             <tbody>
                 @forelse($listings as $listing)
-                <tr class="border-b border-gray-800/50 hover:bg-gray-800/30 last:border-0">
+                <tr class="border-b border-gray-800/50 hover:bg-gray-800/30 last:border-0
+                    {{ $listing->is_flagged ? 'bg-red-500/5' : '' }}">
                     <td class="px-4 py-3">
-                        <div class="font-semibold text-sm">{{ Str::limit($listing->title, 40) }}</div>
+                        <div class="font-semibold text-sm">
+                            {{ Str::limit($listing->title, 40) }}
+
+                            @if($listing->is_flagged)
+                                <span class="ml-2 text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded">
+                                    🚩 FLAGGED
+                                </span>
+                            @endif
+                        </div>
+
                         <div class="text-xs text-gray-500">
                             {{ $listing->images->count() }} screenshots ·
                             {{ $listing->created_at->diffForHumans() }}
                         </div>
+
+                        {{-- ✅ SHOW REASON --}}
+                        @if($listing->is_flagged)
+                            <div class="text-xs text-red-400 mt-1">
+                                ⚠ {{ $listing->flag_reason }}
+                            </div>
+                        @endif
                     </td>
-                    <td class="px-4 py-3 text-sm text-gray-300">{{ $listing->game->name }}</td>
-                    <td class="px-4 py-3 text-sm text-gray-300">{{ $listing->seller->name }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-300">{{ $listing->game->name ?? '—' }}</td>
+                    <td class="px-4 py-3 text-sm text-gray-300">{{ $listing->seller->name ?? 'Unknown' }}</td>
                     <td class="px-4 py-3 text-sm font-bold text-green-400">
                         ${{ number_format($listing->price, 2) }}
                     </td>

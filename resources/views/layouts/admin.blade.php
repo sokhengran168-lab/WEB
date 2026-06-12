@@ -67,8 +67,10 @@
             </a>
 
             <a href="{{ route('admin.listings.index', ['filter' => 'flagged']) }}"
-            class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm mb-1
-                    text-gray-400 hover:bg-gray-800 hover:text-white">
+                class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm mb-1
+                    {{ request('filter') === 'flagged'
+                        ? 'bg-sky-600/20 text-sky-400 font-semibold'
+                        : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
                 🚩 Flagged
                 @php $flagged = \App\Models\Listing::where('is_flagged',true)->where('status','active')->count() @endphp
                 @if($flagged > 0)
@@ -85,9 +87,10 @@
 
             <a href="{{ route('admin.listings.index') }}"
             class="flex items-center gap-2 px-3 py-2 rounded-lg text-sm mb-1
-                    {{ request()->routeIs('admin.listings.*')
-                        ? 'bg-sky-600/20 text-sky-400 font-semibold'
-                        : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}">
+                {{ request()->routeIs('admin.listings.index') && !request('filter')
+                    ? 'bg-sky-600/20 text-sky-400 font-semibold'
+                    : 'text-gray-400 hover:bg-gray-800 hover:text-white' }}
+                ">
                 🛒 Listings
             </a>
 

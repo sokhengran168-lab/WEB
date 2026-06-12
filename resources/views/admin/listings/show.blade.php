@@ -133,7 +133,7 @@
                         {{ strtoupper(substr($listing->seller->name ?? 'U', 0, 1)) }}
                     </div>
                     <div>
-                        <div class="font-semibold">{{ $listing->seller-> ?? 'Unknown Seller' }}</div>
+                        <div class="font-semibold">{{ $listing->seller->name ?? 'Unknown Seller' }}</div>
                         <div class="text-xs text-gray-400">{{ $listing->seller->email ?? 'N/A' }}</div>
                     </div>
                 </div>

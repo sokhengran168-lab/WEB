@@ -43,10 +43,10 @@
                         </div>
                     </td>
                     <td class="px-4 py-3 text-sm text-gray-300">
-                        {{ $listing->game->name }}
+                        {{ $listing->game->name ?? '—' }}
                     </td>
                     <td class="px-4 py-3 text-sm text-gray-300">
-                        {{ $listing->seller->name }}
+                        {{ $listing->seller->name ?? 'Unknown' }}
                     </td>
                     <td class="px-4 py-3 text-sm font-bold text-green-400">
                         ${{ number_format($listing->starting_price, 2) }}
