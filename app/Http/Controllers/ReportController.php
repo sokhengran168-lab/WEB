@@ -38,6 +38,7 @@ class ReportController extends Controller
             'details' => 'nullable|string|max:500',
         ]);
 
+        // Save report
         Report::create([
             'listing_id'  => $listing->id,
             'reporter_id' => auth()->id(),
@@ -45,6 +46,26 @@ class ReportController extends Controller
             'details'     => $request->details,
         ]);
 
+        // Auto-flag logic
+        $reportsCount = Report::where('listing_id', $listing->id)
+            ->where('status', 'pending')
+            ->count();
+
+        if ($reportsCount >= 3 && !$listing->is_flagged) {
+
+            if ($reportsCount >= 5) {
+                $reason = "HIGH RISK: Reported {$reportsCount} times";
+            } else {
+                $reason = "Reported {$reportsCount} times";
+            }
+
+            $listing->update([
+                'is_flagged'  => true,
+                'flag_reason' => $reason,
+                'flagged_at'  => now(),
+            ]);
+        }
+        
         return back()->with('success', 'Report submitted. Our team will review within 24 hours.');
     }
 }

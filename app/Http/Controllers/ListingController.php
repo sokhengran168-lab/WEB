@@ -115,11 +115,18 @@ class ListingController extends Controller
 
         $games = Game::where('is_active', true)->get();
 
+        $gamesData = $games->map(fn($game) => [
+            'id'      => $game->id,
+            'name'    => $game->name,
+            'ranks'   => $game->rank_options ?? [],
+            'servers' => $game->server_options ?? [],
+        ]);
+
         if (!Auth::user()->hasCompletedOnboarding()) {
             session()->flash('warning', 'Complete seller onboarding to publish, or continue to create a draft.');
         }
 
-        return view('listings.create', compact('games'));
+        return view('listings.create', compact('games', 'gamesData')); // ← add $gamesData
     }
 
     // Save new listing

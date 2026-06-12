@@ -76,7 +76,17 @@ class AuctionController extends Controller
     public function create(): View
     {
         $games = Game::where('is_active', true)->get();
-        return view('auctions.create', compact('games'));
+
+        $gamesData = $games->map(function ($game) {
+            return [
+                'id'      => $game->id,
+                'name'    => $game->name,
+                'ranks'   => $game->rank_options ?? [],
+                'servers' => $game->server_options ?? [],
+            ];
+        });
+
+        return view('auctions.create', compact('games', 'gamesData'));
     }
 
     public function store(Request $request): RedirectResponse

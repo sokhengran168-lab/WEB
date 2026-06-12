@@ -104,24 +104,7 @@
             </div>
 
             <div class="grid grid-cols-2 gap-4 mb-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-1.5">
-                        Starting Price (USD) *
-                    </label>
-                    <div class="relative">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2
-                                     text-gray-400 font-bold">$</span>
-                        <input type="number" name="starting_price"
-                               value="{{ old('starting_price', $listing->starting_price) }}"
-                               step="0.01" min="1"
-                               class="w-full bg-gray-800 border border-gray-700 rounded-xl
-                                      pl-7 pr-3 py-2.5 text-sm text-white
-                                      focus:outline-none focus:border-indigo-500">
-                    </div>
-                    @error('starting_price')
-                    <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
+                
                 <div>
                     <label class="block text-xs font-semibold text-gray-400 mb-1.5">
                         Bid Increment (USD) *
