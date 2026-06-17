@@ -24,9 +24,82 @@
         @endif
     </div>
 
-    <form method="POST" action="{{ route('profile.update') }}">
+    <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
         @csrf
         @method('PATCH')
+
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-5">
+            <div class="flex items-center gap-6">
+
+<!-- Avatar -->
+<div class="relative group">
+    <img
+        src="{{ $user->avatar ? $user->avatar : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) }}"
+        class="w-24 h-24 rounded-full object-cover border-2 border-gray-700
+               transition duration-300 hover:scale-105"
+        id="avatarPreview"
+    >
+
+    <!-- Hover overlay -->
+    <label for="avatarInput"
+           class="absolute inset-0 flex items-center justify-center
+                  bg-black/50 opacity-0 group-hover:opacity-100
+                  rounded-full cursor-pointer text-xs text-white font-semibold">
+        <i class="fa-solid fa-camera mr-1"></i>
+        Change
+    </label>
+
+    <input type="file" name="avatar" id="avatarInput" class="hidden"
+           onchange="previewAvatar(event)">
+</div>
+
+                <!-- Profile Info -->
+                <div class="flex-1">
+                    <div class="flex items-center gap-3">
+                        <h2 class="text-lg font-bold">
+                            {{ $user->name }}
+                        </h2>
+
+                        @if($user->profile_completed)
+                            <span class="text-xs bg-green-500/20 text-green-400 px-2 py-1 rounded-full">
+                                <i class="fa-solid fa-circle-check text-[10px] mr-1"></i>
+                                Verified
+                            </span>
+                        @endif
+                    </div>
+
+                    <p class="text-sm text-gray-400">
+                        @ {{ $user->username }}
+                    </p>
+
+                    <p class="text-xs text-gray-500 mt-1">
+                        {{ $user->country ?? 'No country set' }}
+                    </p>
+
+                    <!-- Quick stats -->
+                    <div class="flex gap-4 mt-3 text-xs text-gray-400">
+                        <div>
+                            <span class="font-bold text-white">{{ $user->total_sales ?? 0 }}</span> Sales
+                        </div>
+                        <div>
+                            <span class="font-bold text-white">{{ $user->reviews_count ?? 0 }}</span> Reviews
+                        </div>
+                    </div>
+
+                    <!-- Remove button -->
+                    @if($user->avatar)
+                        <button type="button"
+                                onclick="removeAvatar()"
+                                class="text-red-400 text-xs mt-2 hover:underline">
+                            Remove photo
+                        </button>
+                    @endif
+                </div>
+            </div>
+
+            <!-- Hidden -->
+            <input type="hidden" name="remove_avatar" id="removeAvatarInput" value="0">
+        </div>
 
         {{-- Personal Information --}}
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-4">
@@ -132,8 +205,8 @@
                 </label>
                 <div class="flex gap-2">
                     <x-country-select
-                        name="country"
-                        :selected="old('country', $user->country ?? '')" />
+                        name="phone_country_code"
+                        :selected="old('phone_country_code', $user->phone_country_code ?? '')" />
                     <input type="text" name="phone_number"
                            value="{{ old('phone_number', $user->phone_number) }}"
                            placeholder="123456789"
@@ -208,14 +281,17 @@
             </div>
         </div>
 
-        {{-- Submit --}}
         <div class="flex justify-end mb-4">
             <button type="submit"
-                    class="bg-indigo-600 hover:bg-indigo-500 text-white
-                           px-6 py-2.5 rounded-xl font-semibold text-sm transition">
-                Save Profile
+                onclick="this.disabled=true; this.innerHTML='Saving...'; this.form.submit();"
+                class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white
+                    px-6 py-2.5 rounded-xl font-semibold text-sm transition shadow">
+
+                <i class="fa-solid fa-floppy-disk text-xs"></i>
+                <span>Save Profile</span>
             </button>
         </div>
+
 
     </form>
 
@@ -294,7 +370,9 @@
                 Delete Account
             </button>
         </div>
-        <div x-show="show" class="mt-4 pt-4 border-t border-red-500/20">
+        <div x-show="show"
+             x-transition
+             class="mt-4 pt-4 border-t border-red-500/20">
             <form method="POST" action="{{ route('profile.destroy') }}">
                 @csrf
                 @method('DELETE')
@@ -304,6 +382,7 @@
                               px-3 py-2 text-sm text-white mb-3
                               focus:outline-none focus:border-red-500">
                 <button type="submit"
+                        onclick="this.innerText='Saving...'; this.disabled=true;"
                         class="w-full bg-red-600 hover:bg-red-500 text-white
                                py-2 rounded-xl text-sm font-bold transition">
                     Yes, Delete My Account Permanently
@@ -314,3 +393,28 @@
 
 </div>
 @endsection
+
+<script>
+function previewAvatar(event) {
+    const reader = new FileReader();
+    reader.onload = function () {
+        document.getElementById('avatarPreview').src = reader.result;
+    };
+    reader.readAsDataURL(event.target.files[0]);
+
+    document.getElementById('removeAvatarInput').value = 0;
+}
+
+function removeAvatar() {
+    const defaultAvatar = @json(
+        $user->avatar
+            ? $user->avatar
+            : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&color=fff&background=6366f1'
+    );
+
+    document.getElementById('avatarPreview').src = defaultAvatar;
+
+    document.getElementById('avatarInput').value = "";
+    document.getElementById('removeAvatarInput').value = 1;
+}
+</script>

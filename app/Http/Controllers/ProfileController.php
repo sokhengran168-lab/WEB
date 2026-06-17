@@ -28,7 +28,7 @@ class ProfileController extends Controller
             'whatsapp'           => 'nullable|string|max:20',
             'discord'            => 'nullable|string|max:100',
             'line_id'            => 'nullable|string|max:100',
-            'avatar'             => 'nullable|image|max:2048'
+            'avatar'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
         // Check if profile is completed
@@ -36,15 +36,30 @@ class ProfileController extends Controller
             && $request->country
             && $request->phone_number;
 
-                        $avatarUrl = $user->avatar; // keep old avatar
+        //  Always start with old avatar
+        $avatarUrl = $user->avatar; // keep old avatar
 
-            if ($request->hasFile('avatar')) {
-                $upload = cloudinary()->uploadApi()->upload(
-                    $request->file('avatar')->getRealPath()
-                );
+        //  Handle remove avatar
+        if ($request->input('remove_avatar') == '1') {
+            $avatarUrl = null;
+        }
 
-                $avatarUrl = $upload['secure_url'];
-            }
+        //  Handle new upload (this overrides remove if both happen)
+        if ($request->hasFile('avatar')) {
+            $upload = cloudinary()->uploadApi()->upload(
+                $request->file('avatar')->getRealPath(),
+                [
+                    'folder' => 'avatars',
+                    'transformation' => [
+                        'width' => 300,
+                        'height' => 300,
+                        'crop' => 'fill'
+                    ]
+                ]
+            );
+            
+            $avatarUrl = $upload['secure_url'];
+        }
 
         $user->update([
             'name'               => $request->name,

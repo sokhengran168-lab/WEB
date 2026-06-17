@@ -30,6 +30,7 @@ class AuctionController extends Controller
 
     public function index(Request $request)
     {
+        // dd('AUCTION PAGE');
         // ✅ Add stats HERE
         $totalListings = Listing::where('status', 'active')->count();
         $totalSales    = Transaction::where('status', 'completed')->count();
@@ -60,17 +61,34 @@ class AuctionController extends Controller
             ->get();
 
         $listings = Listing::with(['game', 'seller', 'firstImage'])
-            ->where('type', 'fixed')
-            ->where(function ($query) {
-                $query->where('status', 'active');
+            ->where('type', 'auction')
 
-                if (Auth::check()) {
-                    $query->orWhere(function ($query) {
-                        $query->where('user_id', Auth::id())
-                            ->whereIn('status', ['pending', 'rejected']);
-                    });
-                }
-            })
+->when($request->status === 'active', function ($q) {
+        $q->where('status', 'active')
+          ->where('auction_ends_at', '>', now());
+    })
+
+    ->when($request->status === 'ended', function ($q) {
+        $q->where(function ($sub) {
+            $sub->where('status', 'inactive') // manually ended
+                ->orWhere('auction_ends_at', '<=', now()); // expired
+        });
+    })
+
+    ->when(!$request->status, function ($q) {
+        // ✅ default = active
+        $q->where('status', 'active')
+          ->where('auction_ends_at', '>', now());
+    })
+
+    // ✅ show user's own pending/rejected (optional)
+    ->when(Auth::check(), function ($q) {
+        $q->orWhere(function ($sub) {
+            $sub->where('user_id', Auth::id())
+                ->whereIn('status', ['pending', 'rejected']);
+        });
+    })
+
             ->when($request->search,    fn($q) => $q->where('title', 'like', '%' . $request->search . '%'))
             ->when($request->game_id,   fn($q) => $q->where('game_id', $request->game_id))
             ->when($request->platform,  fn($q) => $q->where('platform', $request->platform))
@@ -84,7 +102,7 @@ class AuctionController extends Controller
             ->withQueryString();
 
         // ✅ Pass stats to view
-        return view('listings.index', compact(
+        return view('auctions.index', compact(
             'listings',
             'games',
             'featured',

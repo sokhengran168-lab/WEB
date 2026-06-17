@@ -267,16 +267,30 @@
 
                 {{-- Seller --}}
                 <div class="flex items-center gap-3 bg-gray-800 rounded-xl p-3 mb-4">
-                    <div class="w-9 h-9 bg-indigo-600 rounded-full flex items-center
-                                justify-center font-bold text-sm">
-                        {{ strtoupper(substr($listing->seller->name, 0, 1)) }}
-                    </div>
+
+                    {{-- Avatar --}}
+                    @if($listing->seller->avatar)
+                        <img src="{{ $listing->seller->avatar }}"
+                            class="w-9 h-9 rounded-full object-cover border border-gray-700">
+                    @else
+                        <div class="w-9 h-9 bg-indigo-600 rounded-full flex items-center
+                                    justify-center font-bold text-sm text-white">
+                            {{ strtoupper(substr($listing->seller->name, 0, 1)) }}
+                        </div>
+                    @endif
+
+                    {{-- Info --}}
                     <div>
-                        <div class="font-semibold text-sm">{{ $listing->seller->name }}</div>
-                        <div class="text-xs text-gray-400">
-                            🛒 {{ $listing->seller->total_sales }} sales
+                        <div class="font-semibold text-sm">
+                            {{ $listing->seller->name }}
+                        </div>
+
+                        <div class="text-xs text-gray-400 flex items-center gap-1">
+                            <i class="fa-solid fa-cart-shopping text-[10px]"></i>
+                            {{ $listing->seller->total_sales }} sales
                         </div>
                     </div>
+
                 </div>
 
                 {{-- Bid Form --}}

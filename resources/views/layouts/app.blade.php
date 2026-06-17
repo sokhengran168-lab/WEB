@@ -49,46 +49,98 @@
             </a>
 
             {{-- Nav Links --}}
-            <div class="hidden md:flex items-center gap-1">
-                <a href="{{ route('listings.index') }}"
-                   class="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition">
+            <div class="hidden md:flex items-center gap-6">
+
+                <a href="{{ route('listings.index') }}" class="relative px-1 py-2 text-sm transition
+                        {{ request()->routeIs('listings.*') ? 'text-white' : 'text-gray-400 hover:text-white' }}">
                     Browse
+
+                    @if(request()->routeIs('listings.*'))
+                        <span class="absolute left-0 -bottom-1 w-full h-[2px] bg-indigo-500 rounded-full"></span>
+                    @endif
                 </a>
-                <a href="{{ route('auctions.index') }}"
-                    class="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition">
+
+                <a href="{{ route('auctions.index') }}" class="relative px-1 py-2 text-sm transition
+                        {{ request()->routeIs('auctions.*') ? 'text-white' : 'text-gray-400 hover:text-white' }}">
                     Auctions
+
+                    @if(request()->routeIs('auctions.*'))
+                        <span class="absolute left-0 -bottom-1 w-full h-[2px] bg-indigo-500 rounded-full"></span>
+                    @endif
                 </a>
+
                 @auth
-                <a href="{{ route('transactions.index') }}"
-                class="px-3 py-2 rounded-lg text-sm text-gray-400 hover:text-white hover:bg-gray-800 transition">
+                <a href="{{ route('transactions.index') }}" class="relative px-1 py-2 text-sm transition
+                        {{ request()->routeIs('transactions.*') ? 'text-white' : 'text-gray-400 hover:text-white' }}">
                     My Orders
+
+                    @if(request()->routeIs('transactions.*'))
+                        <span class="absolute left-0 -bottom-1 w-full h-[2px] bg-indigo-500 rounded-full"></span>
+                    @endif
                 </a>
                 @endauth
+
             </div>
 
             {{-- Right Side --}}
             <div class="flex items-center gap-3">
                 @auth
                     {{-- Sell Item Button --}}
-                    <div class="relative" x-data="{ open: false }">
-                        <button @click="open = !open"
-                                class="flex items-center gap-1 px-4 py-2 bg-indigo-600 hover:bg-indigo-500
-                                    text-white text-sm font-semibold rounded-lg transition">
+                    <div class="relative" x-data="{ createOpen: false }">
+
+                        <!-- Button -->
+                        <button @click="createOpen = !createOpen"
+                            class="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500
+                                text-white text-sm font-semibold rounded-lg transition shadow">
+
+                            <i class="fa-solid fa-plus text-xs"></i>
                             New
-                            <span class="text-xs">+</span>
                         </button>
-                        <div x-show="open"
-                            @click.outside="open = false"
-                            class="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700
-                                    rounded-xl shadow-xl py-1 z-50">
+
+                        <!-- Dropdown -->
+                        <div x-show="createOpen"
+                            x-transition:enter="transition ease-out duration-200"
+                            x-transition:enter-start="opacity-0 scale-95"
+                            x-transition:enter-end="opacity-100 scale-100"
+                            x-transition:leave="transition ease-in duration-150"
+                            x-transition:leave-start="opacity-100 scale-100"
+                            x-transition:leave-end="opacity-0 scale-95"
+                            x-transition.origin.top.right
+                            @click.outside="createOpen = false"
+                            class="absolute right-0 mt-3 w-60 bg-gray-800 border border-gray-700
+                                    rounded-2xl shadow-xl py-2 z-50">
+
+                            <!-- Header -->
+                            <div class="px-4 py-2 text-xs text-gray-500 uppercase tracking-wider">
+                                Create
+                            </div>
+
+                            <!-- Sell Account -->
                             <a href="{{ route('listings.create') }}"
-                            class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                                Sell Account
+                            class="flex items-start gap-3 px-4 py-3 text-sm text-gray-300
+                                    hover:bg-gray-700 hover:text-white transition rounded-lg mx-2">
+
+                                <i class="fa-solid fa-store text-indigo-400 mt-1"></i>
+
+                                <div>
+                                    <div class="font-semibold">Sell Account</div>
+                                    <div class="text-xs text-gray-500">List your game account</div>
+                                </div>
                             </a>
+
+                            <!-- Create Auction -->
                             <a href="{{ route('auctions.create') }}"
-                            class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                                Create Auction
+                            class="flex items-start gap-3 px-4 py-3 text-sm text-gray-300
+                                    hover:bg-gray-700 hover:text-white transition rounded-lg mx-2">
+
+                                <i class="fa-solid fa-gavel text-yellow-400 mt-1"></i>
+
+                                <div>
+                                    <div class="font-semibold">Create Auction</div>
+                                    <div class="text-xs text-gray-500">Let users bid</div>
+                                </div>
                             </a>
+
                         </div>
                     </div>
 
@@ -97,44 +149,71 @@
                         <button @click="open = !open"
                                 class="flex items-center gap-2 bg-gray-800 px-3 py-1.5
                                        rounded-lg text-sm text-gray-300 hover:text-white transition">
-                            <div class="w-6 h-6 rounded-full bg-indigo-600 flex items-center
-                                        justify-center text-xs font-bold text-white">
-                                {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
-                            </div>
+                            @if(auth()->user()->avatar)
+                                <img src="{{ auth()->user()->avatar }}"
+                                    class="w-6 h-6 rounded-full object-cover border border-gray-700">
+                            @else
+                                <div class="w-6 h-6 rounded-full bg-indigo-600 flex items-center
+                                            justify-center text-xs font-bold text-white">
+                                    {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
+                                </div>
+                            @endif
                             {{ auth()->user()->name }}
-                            <span class="text-xs">▾</span>
+                            <i class="fa-solid fa-chevron-down text-xs transition-transform duration-200"
+                                :class="{ 'rotate-180': open }"></i>
                         </button>
                         <div x-show="open"
-                             @click.outside="open = false"
-                             class="absolute right-0 mt-2 w-48 bg-gray-800 border border-gray-700
-                                    rounded-xl shadow-xl py-1 z-50">
+                            x-transition.origin.top.right
+                            @click.outside="open = false"
+                            class="absolute right-0 mt-2 w-56 bg-gray-800 border border-gray-700
+                                    rounded-xl shadow-xl py-2 z-50">
+
+                            <!-- Dashboard -->
                             <a href="{{ route('dashboard') }}"
-                               class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                                📊 Dashboard
+                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300
+                                    hover:bg-gray-700 hover:text-white transition">
+
+                                <i class="fa-solid fa-chart-line text-gray-400 w-4 text-center"></i>
+                                Dashboard
                             </a>
-                            {{-- <a href="{{ route('wallet.index') }}"
-                               class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                                💰 Wallet
-                            </a> --}}
+
+                            <!-- Profile -->
                             <a href="{{ route('profile.edit') }}"
-                               class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white">
-                                ⚙️ Profile
+                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300
+                                    hover:bg-gray-700 hover:text-white transition">
+
+                                <i class="fa-solid fa-user-gear text-gray-400 w-4 text-center"></i>
+                                Profile
                             </a>
+
+                            <!-- Divider -->
+                            <div class="border-t border-gray-700 my-2"></div>
+
+                            <!-- Admin (if admin) -->
                             @if(auth()->user()->isAdmin())
-                            <div class="border-t border-gray-700 my-1"></div>
                             <a href="{{ route('admin.dashboard') }}"
-                               class="block px-4 py-2 text-sm text-sky-400 hover:bg-gray-700">
-                                👨‍💼 Admin Panel
+                            class="flex items-center gap-3 px-4 py-2.5 text-sm text-sky-400
+                                    hover:bg-gray-700 transition">
+
+                                <i class="fa-solid fa-user-shield w-4 text-center"></i>
+                                Admin Panel
                             </a>
+
+                            <div class="border-t border-gray-700 my-2"></div>
                             @endif
-                            <div class="border-t border-gray-700 my-1"></div>
+
+                            <!-- Logout -->
                             <form method="POST" action="{{ route('logout') }}">
                                 @csrf
                                 <button type="submit"
-                                        class="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-gray-700">
-                                    🚪 Logout
+                                        class="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400
+                                            hover:bg-gray-700 transition text-left">
+
+                                    <i class="fa-solid fa-right-from-bracket w-4 text-center"></i>
+                                    Logout
                                 </button>
                             </form>
+
                         </div>
                     </div>
                 @else
@@ -260,34 +339,49 @@
                                 tracking-widest uppercase mb-3">
                         Account
                     </div>
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-1">
+
                         @auth
+
                         <a href="{{ route('dashboard') }}"
-                        class="text-xs text-gray-500 hover:text-indigo-400 transition">
-                            📊 Dashboard
+                        class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-400
+                                hover:text-white hover:bg-gray-800 rounded-lg transition">
+                            <i class="fa-solid fa-chart-line text-gray-500 w-4 text-center"></i>
+                            Dashboard
                         </a>
+
                         <a href="{{ route('transactions.index') }}"
-                        class="text-xs text-gray-500 hover:text-indigo-400 transition">
-                            📦 My Orders
+                        class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-400
+                                hover:text-white hover:bg-gray-800 rounded-lg transition">
+                            <i class="fa-solid fa-box text-gray-500 w-4 text-center"></i>
+                            My Orders
                         </a>
-                        {{-- <a href="{{ route('wallet.index') }}"
-                        class="text-xs text-gray-500 hover:text-indigo-400 transition">
-                            💰 Wallet
-                        </a> --}}
+
                         <a href="{{ route('profile.edit') }}"
-                        class="text-xs text-gray-500 hover:text-indigo-400 transition">
-                            ⚙️ Profile
+                        class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-400
+                                hover:text-white hover:bg-gray-800 rounded-lg transition">
+                            <i class="fa-solid fa-user-gear text-gray-500 w-4 text-center"></i>
+                            Profile
                         </a>
+
                         @else
+
                         <a href="{{ route('login') }}"
-                        class="text-xs text-gray-500 hover:text-indigo-400 transition">
-                            🔑 Sign In
+                        class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-400
+                                hover:text-white hover:bg-gray-800 rounded-lg transition">
+                            <i class="fa-solid fa-right-to-bracket text-gray-500 w-4 text-center"></i>
+                            Sign In
                         </a>
+
                         <a href="{{ route('register') }}"
-                        class="text-xs text-gray-500 hover:text-indigo-400 transition">
-                            🎮 Create Account
+                        class="flex items-center gap-2 px-2 py-1.5 text-sm text-gray-400
+                                hover:text-white hover:bg-gray-800 rounded-lg transition">
+                            <i class="fa-solid fa-user-plus text-gray-500 w-4 text-center"></i>
+                            Create Account
                         </a>
+
                         @endauth
+
                     </div>
                 </div>
 

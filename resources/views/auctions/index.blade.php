@@ -177,6 +177,8 @@
 
             {{-- Body --}}
             <div class="p-5">
+                    <p class="text-red-400 text-xs">{{ $listing->type }}</p>
+                    
                 <div class="text-xs font-bold text-yellow-400 uppercase tracking-widest mb-2">
                     {{ $listing->game->name }}
                 </div>

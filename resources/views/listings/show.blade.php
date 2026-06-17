@@ -255,30 +255,56 @@
                 </div>
                 <div class="font-bold text-lg mb-4 leading-tight">{{ $listing->title }}</div>
 
-                {{-- Seller --}}
-                <div class="flex items-center gap-3 bg-gray-800 rounded-xl p-3 mb-4">
-                    <div class="w-9 h-9 bg-indigo-600 rounded-full flex items-center
-                                justify-center font-bold text-sm flex-shrink-0">
-                        {{ strtoupper(substr($listing->seller->name, 0, 1)) }}
-                    </div>
-                    <div class="flex-1 min-w-0">
-                        <a href="{{ route('sellers.show', $listing->seller) }}"
-                           class="font-semibold text-sm hover:text-indigo-400 transition">
-                            {{ $listing->seller->name }}
-                        </a>
-                        <div class="flex items-center gap-2 text-xs text-gray-400 flex-wrap mt-0.5">
-                            <span>🛒 {{ $listing->seller->total_sales }} sales</span>
-                            @if($listing->seller->rating_avg > 0)
-                            <span>·</span>
-                            <span class="text-yellow-400">⭐ {{ number_format($listing->seller->rating_avg, 1) }}</span>
-                            @endif
-                            @if($listing->seller->is_verified)
-                            <span>·</span>
-                            <span class="text-sky-400">✓ Verified</span>
-                            @endif
-                        </div>
-                    </div>
-                </div>
+{{-- Seller --}}
+<div class="flex items-center gap-3 bg-gray-800 rounded-xl p-3 mb-4">
+
+    {{-- Avatar --}}
+    @if($listing->seller->avatar)
+        <img src="{{ $listing->seller->avatar }}"
+             class="w-9 h-9 rounded-full object-cover border border-gray-700 flex-shrink-0">
+    @else
+        <div class="w-9 h-9 bg-indigo-600 rounded-full flex items-center
+                    justify-center font-bold text-sm text-white flex-shrink-0">
+            {{ strtoupper(substr($listing->seller->name, 0, 1)) }}
+        </div>
+    @endif
+
+    {{-- Info --}}
+    <div class="flex-1 min-w-0">
+
+        <a href="{{ route('sellers.show', $listing->seller) }}"
+           class="font-semibold text-sm hover:text-indigo-400 transition">
+            {{ $listing->seller->name }}
+        </a>
+
+        <div class="flex items-center gap-2 text-xs text-gray-400 flex-wrap mt-0.5">
+
+            <!-- Sales -->
+            <span class="flex items-center gap-1">
+                <i class="fa-solid fa-cart-shopping text-[10px]"></i>
+                {{ $listing->seller->total_sales }} sales
+            </span>
+
+            @if($listing->seller->rating_avg > 0)
+                <span>·</span>
+                <span class="text-yellow-400 flex items-center gap-1">
+                    <i class="fa-solid fa-star text-[10px]"></i>
+                    {{ number_format($listing->seller->rating_avg, 1) }}
+                </span>
+            @endif
+
+            @if($listing->seller->is_verified)
+                <span>·</span>
+                <span class="text-sky-400 flex items-center gap-1">
+                    <i class="fa-solid fa-circle-check text-[10px]"></i>
+                    Verified
+                </span>
+            @endif
+
+        </div>
+    </div>
+
+</div>
 
                 {{-- Escrow --}}
                 <div class="bg-cyan-500/5 border border-cyan-500/15 rounded-xl p-3 mb-4

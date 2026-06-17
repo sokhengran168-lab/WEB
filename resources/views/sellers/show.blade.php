@@ -5,28 +5,63 @@
 <div class="max-w-5xl mx-auto px-4 py-8">
 
     {{-- Seller Header --}}
-    <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6 flex items-center gap-6">
+<div class="bg-gray-900 border border-gray-800 rounded-xl p-6 mb-6 flex items-center gap-6">
+
+    {{-- Avatar --}}
+    @if($user->avatar)
+        <img src="{{ $user->avatar }}"
+             class="w-20 h-20 rounded-full object-cover border border-gray-700 flex-shrink-0">
+    @else
         <div class="w-20 h-20 bg-indigo-600 rounded-full flex items-center justify-center
-                    text-3xl font-bold flex-shrink-0">
+                    text-3xl font-bold text-white flex-shrink-0">
             {{ strtoupper(substr($user->name, 0, 1)) }}
         </div>
-        <div class="flex-1">
-            <div class="flex items-center gap-2 mb-1">
-                <h1 class="text-xl font-bold">{{ $user->name }}</h1>
-                @if($user->is_verified)
-                <span class="text-xs bg-sky-500/15 text-sky-400 border border-sky-500/25
-                             px-2 py-0.5 rounded-full">✓ Verified</span>
-                @endif
-            </div>
-            <div class="flex items-center gap-4 text-sm text-gray-400">
-                <span>Cart {{ $user->total_sales }} sales</span>
-                @if($user->rating_avg > 0)
-                <span>Rating {{ number_format($user->rating_avg, 1) }} / 5.0</span>
-                @endif
-                <span>Joined {{ $user->created_at->format('M Y') }}</span>
-            </div>
+    @endif
+
+    {{-- Info --}}
+    <div class="flex-1">
+        <div class="flex items-center gap-2 mb-1">
+
+            <h1 class="text-xl font-bold">
+                {{ $user->name }}
+            </h1>
+
+            @if($user->is_verified)
+                <span class="flex items-center gap-1 text-xs bg-sky-500/15 text-sky-400 border border-sky-500/25
+                             px-2 py-0.5 rounded-full">
+                    <i class="fa-solid fa-circle-check text-[10px]"></i>
+                    Verified
+                </span>
+            @endif
+
+        </div>
+
+        <div class="flex items-center gap-4 text-sm text-gray-400 flex-wrap">
+
+            {{-- Sales --}}
+            <span class="flex items-center gap-1">
+                <i class="fa-solid fa-cart-shopping text-[12px]"></i>
+                {{ $user->total_sales }} sales
+            </span>
+
+            {{-- Rating --}}
+            @if($user->rating_avg > 0)
+                <span class="flex items-center gap-1 text-yellow-400">
+                    <i class="fa-solid fa-star text-[12px]"></i>
+                    {{ number_format($user->rating_avg, 1) }}
+                </span>
+            @endif
+
+            {{-- Joined --}}
+            <span class="flex items-center gap-1">
+                <i class="fa-solid fa-calendar text-[12px]"></i>
+                Joined {{ $user->created_at->format('M Y') }}
+            </span>
+
         </div>
     </div>
+
+</div>
 
     <div class="grid grid-cols-3 gap-6">
 
