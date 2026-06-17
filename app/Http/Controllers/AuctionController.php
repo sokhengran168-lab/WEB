@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Game;
 use App\Models\Listing;
 use App\Models\Transaction;
+use App\Models\User;
 use App\Services\AuctionService;
 use Carbon\Carbon;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -21,29 +22,80 @@ class AuctionController extends Controller
     public function __construct(
         private readonly AuctionService $auctionService
     ) {
-        $this->middleware('auth')->only(['create', 'store', 'bid', 'myBids']);
+        $this->middleware('auth')->only([
+            'create', 'store', 'bid', 'myBids',
+            'edit', 'update', 'destroy',
+            ]);
     }
 
-    public function index(Request $request): View
+    public function index(Request $request)
     {
-        $games = Game::where('is_active', true)->get();
+        // ✅ Add stats HERE
+        $totalListings = Listing::where('status', 'active')->count();
+        $totalSales    = Transaction::where('status', 'completed')->count();
+        $totalSellers  = User::where('total_sales', '>', 0)->count();
 
-        $listings = Listing::with(['game', 'seller', 'firstImage', 'highestBidder'])
-            ->withCount('bids')
+        $games = Game::where('is_active', true)
+            ->withCount(['listings' => fn($q) => $q->where('status', 'active')])
+            ->get();
+
+        $auctionCount = Listing::where('type', 'auction')
+            ->where('status', 'active')
+            ->count();
+
+        $featured = Listing::with(['game', 'seller', 'firstImage'])
+            ->where('status', 'active')
+            ->where('type', 'fixed')
+            ->where('is_featured', true)
+            ->latest()
+            ->take(3)
+            ->get();
+
+        $liveAuctions = Listing::with(['game', 'seller', 'firstImage', 'highestBidder'])
+            ->where('status', 'active')
             ->where('type', 'auction')
-            ->when($request->status === 'ended', fn($q) => $q->where('status', 'inactive'))
-            ->when(!$request->status || $request->status === 'active', fn($q) => $q->where('status', 'active'))
-            ->when($request->search, fn($q) => $q->where('title', 'like', "%{$request->search}%"))
-            ->when($request->game_id, fn($q) => $q->where('game_id', $request->game_id))
-            ->when($request->platform, fn($q) => $q->where('platform', $request->platform))
-            ->when($request->sort === 'ending_soon', fn($q) => $q->orderBy('auction_ends_at', 'asc'))
-            ->when($request->sort === 'highest_bid', fn($q) => $q->orderBy('current_bid', 'desc'))
-            ->when($request->sort === 'lowest_bid', fn($q) => $q->orderBy('current_bid', 'asc'))
-            ->when(!$request->sort, fn($q) => $q->latest())
+            ->where('auction_ends_at', '>', now())
+            ->latest()
+            ->take(4)
+            ->get();
+
+        $listings = Listing::with(['game', 'seller', 'firstImage'])
+            ->where('type', 'fixed')
+            ->where(function ($query) {
+                $query->where('status', 'active');
+
+                if (Auth::check()) {
+                    $query->orWhere(function ($query) {
+                        $query->where('user_id', Auth::id())
+                            ->whereIn('status', ['pending', 'rejected']);
+                    });
+                }
+            })
+            ->when($request->search,    fn($q) => $q->where('title', 'like', '%' . $request->search . '%'))
+            ->when($request->game_id,   fn($q) => $q->where('game_id', $request->game_id))
+            ->when($request->platform,  fn($q) => $q->where('platform', $request->platform))
+            ->when($request->min_price, fn($q) => $q->where('price', '>=', $request->min_price))
+            ->when($request->max_price, fn($q) => $q->where('price', '<=', $request->max_price))
+            ->when($request->sort === 'price_asc',  fn($q) => $q->orderBy('price', 'asc'))
+            ->when($request->sort === 'price_desc', fn($q) => $q->orderBy('price', 'desc'))
+            ->when($request->sort === 'popular',    fn($q) => $q->orderBy('views_count', 'desc'))
+            ->latest()
             ->paginate(12)
             ->withQueryString();
 
-        return view('auctions.index', compact('listings', 'games'));
+        // ✅ Pass stats to view
+        return view('listings.index', compact(
+            'listings',
+            'games',
+            'featured',
+            'liveAuctions',
+            'auctionCount',
+
+            // ✅ ADD THESE
+            'totalListings',
+            'totalSales',
+            'totalSellers'
+        ));
     }
 
     public function show(Listing $listing): View
@@ -201,6 +253,56 @@ class AuctionController extends Controller
                 ->withInput();
         }
     }
+    public function edit(Listing $listing): View
+    {
+        $this->authorize('update', $listing);
+
+        if ($listing->bids()->exists()) {
+            abort(403, 'Cannot edit auction with bids.');
+        }
+
+        $games = Game::where('is_active', true)->get();
+
+        $gamesData = $games->map(function ($game) {
+            return [
+                'id'      => $game->id,
+                'name'    => $game->name,
+                'ranks'   => $game->rank_options ?? [],
+                'servers' => $game->server_options ?? [],
+            ];
+        });
+
+        return view('auctions.edit', compact('listing', 'games', 'gamesData'));
+    }
+
+    public function update(Request $request, Listing $listing): RedirectResponse
+    {
+        $this->authorize('update', $listing);
+
+        if ($listing->bids()->exists()) {
+            return back()->withErrors(['error' => 'Cannot edit auction after bids started.']);
+        }
+
+        $validated = $request->validate([
+            'title'          => 'required|string|max:255',
+            'starting_price' => 'required|numeric|min:1',
+            'bid_increment'  => 'required|numeric|min:0.5',
+            'rank'           => 'nullable|string|max:100',
+            'level'          => 'nullable|integer|min:1',
+            'server'         => 'nullable|string|max:100',
+            'platform'       => 'required|in:Mobile,PC,Console',
+            'auction_ends_at'=> 'required|date',
+        ]);
+
+        $listing->update([
+            ...$validated,
+            'price' => $validated['starting_price']
+        ]);
+
+        return redirect()
+            ->route('auctions.show', $listing)
+            ->with('success', '✅ Auction updated successfully');
+    }
 
     public function bid(Request $request, Listing $listing)
     {
@@ -281,4 +383,20 @@ class AuctionController extends Controller
 
         return view('auctions.my-bids', compact('bids', '$wonAuctions'));
     }
+
+    public function destroy(Listing $listing): RedirectResponse
+    {
+        $this->authorize('delete', $listing);
+
+        if ($listing->bids()->exists()) {
+            return back()->withErrors(['error' => 'Cannot delete auction after bids started.']);
+        }
+
+        $listing->delete();
+
+        return redirect()
+            ->route('dashboard')
+            ->with('success', '🗑️ Auction deleted successfully');
+    }
+
 }

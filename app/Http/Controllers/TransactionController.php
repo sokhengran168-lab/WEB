@@ -84,7 +84,15 @@ class TransactionController extends Controller
             'seller_payout'    => $payout,
             'payment_method'   => 'card',
             'status'           => 'pending',
+
+            // ✅ dynamic from config
+            'bank_name'            => config('payment.bank_name'),
+            'bank_account_name'    => config('payment.bank_account_name'),
+            'bank_account_number'  => config('payment.bank_account_number'),
+            'bank_swift'           => config('payment.bank_swift'),
+
         ]);
+        // dd($transaction);
 
         // Reserve listing so nobody else can buy it
         $listing->update(['status' => 'reserved']);

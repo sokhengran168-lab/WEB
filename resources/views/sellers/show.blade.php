@@ -88,9 +88,28 @@
                                 </div>
                             </div>
                         </div>
+
+                    {{-- ✅ RIGHT SIDE --}}
+                    <div class="flex flex-col items-end">
+                        {{-- Stars --}}
                         <div class="flex">
-                            {!! $review->stars() !!}
+                            @for($i = 1; $i <= 5; $i++)
+                                <span class="{{ $i <= $review->rating ? 'text-yellow-400' : 'text-gray-600' }}">
+                                    ★
+                                </span>
+                            @endfor
                         </div>
+
+                        {{-- ✅ Label (correct place) --}}
+                        <div class="text-xs text-gray-500 mt-1">
+                            @if($review->rating == 5) Excellent
+                            @elseif($review->rating == 4) Good
+                            @elseif($review->rating == 3) Average
+                            @elseif($review->rating == 2) Poor
+                            @else Bad
+                            @endif
+                        </div>
+                    </div>
                     </div>
                     @if($review->comment)
                     <p class="text-sm text-gray-300 leading-relaxed ml-10">
@@ -132,9 +151,15 @@
                 <a href="{{ route('listings.show', $listing) }}"
                    class="flex items-center gap-3 px-4 py-3 border-b border-gray-800
                           last:border-0 hover:bg-gray-800 transition">
-                    <div class="w-10 h-10 bg-gray-800 rounded-lg flex items-center
-                                justify-center text-lg flex-shrink-0">
-                        🎮
+                    <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-800 flex-shrink-0 border border-gray-700">
+                        @if($listing->firstImage ?? false)
+                            <img src="{{ $listing->firstImage->url }}"
+                                class="w-full h-full object-cover">
+                        @else
+                            <div class="w-full h-full flex items-center justify-center text-gray-600 text-xs">
+                                No Image
+                            </div>
+                        @endif
                     </div>
                     <div class="flex-1 min-w-0">
                         <div class="text-sm font-semibold truncate">{{ $listing->title }}</div>

@@ -8,6 +8,11 @@ use Illuminate\Http\Request;
 
 class ReportController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth');
+    }
+
     public function create(Listing $listing)
     {
         if ($listing->user_id === auth()->id()) {
@@ -39,11 +44,18 @@ class ReportController extends Controller
         ]);
 
         // Save report
+        // Report::create([
+        //     'listing_id'  => $listing->id,
+        //     'reporter_id' => auth()->id(),
+        //     'reason'      => $request->reason,
+        //     'details'     => $request->details,
+        // ]);
         Report::create([
             'listing_id'  => $listing->id,
             'reporter_id' => auth()->id(),
             'reason'      => $request->reason,
             'details'     => $request->details,
+            'status'      => 'pending',
         ]);
 
         // Auto-flag logic
@@ -65,7 +77,7 @@ class ReportController extends Controller
                 'flagged_at'  => now(),
             ]);
         }
-        
+
         return back()->with('success', 'Report submitted. Our team will review within 24 hours.');
     }
 }

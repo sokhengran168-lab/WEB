@@ -61,7 +61,7 @@
         {{ request('status') !== 'ended'
             ? 'bg-green-600 text-white'
             : 'bg-gray-800 text-gray-400' }}">
-            ✅ Live
+            Live
         </a>
 
         <a href="{{ route('auctions.index', ['status' => 'ended']) }}"
@@ -69,7 +69,7 @@
         {{ request('status') === 'ended'
             ? 'bg-red-600 text-white'
             : 'bg-gray-800 text-gray-400' }}">
-            🏁 Ended
+            Ended
         </a>
 
     </div>

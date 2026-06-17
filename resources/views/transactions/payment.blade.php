@@ -129,14 +129,13 @@
                     <div class="flex flex-col gap-2">
 
                         {{-- Bank fields --}}
-
                         @foreach([
-                            ['🏦', 'Bank Name',       $transaction->bank_name ?? 'ABA Bank',           'bank_name'],
-                            ['👤', 'Account Name',    $transaction->bank_account_name ?? 'GameTradeHub',   'account_name'],
-                            ['💳', 'Account Number',  $transaction->bank_account_number ?? '123456789',   'account_number'],
-                            ['🌐', 'Swift / BIC',     $transaction->bank_swift ?? 'ABAAXXXX',          'swift'],
-                        ] as [$icon, $label, $value, $id])
-
+                            ['🏦', 'Bank Name',       $transaction->bank_name],
+                            ['👤', 'Account Name',    $transaction->bank_account_name],
+                            ['💳', 'Account Number',  $transaction->bank_account_number],
+                            ['🌐', 'Swift / BIC',     $transaction->bank_swift],
+                        ] as [$icon, $label, $value])
+                        
                         <div class="flex items-center justify-between bg-gray-800/60
                                     border border-gray-700/50 rounded-xl px-4 py-3">
                             <div class="flex items-center gap-2">
@@ -308,7 +307,13 @@
                     {{-- Item --}}
                     <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-800">
                         <div class="w-12 h-10 bg-gray-800 rounded-xl flex items-center
-                                    justify-center text-xl flex-shrink-0">🎮</div>
+                                    justify-center text-xl flex-shrink-0">
+                                    {{-- 🎮 --}}
+                                    @if($transaction->listing->firstImage)
+                                        <img src="{{ $transaction->listing->firstImage->url }}"
+                                            class="w-full h-full object-cover">
+                                    @endif
+                        </div>
                         <div class="flex-1 min-w-0">
                             <div class="font-semibold text-sm text-white truncate">
                                 {{ $transaction->listing->title }}

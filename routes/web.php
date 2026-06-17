@@ -107,12 +107,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/reviews/{review}', [ReviewController::class, 'destroy'])
         ->name('reviews.destroy');
 
-    // // Wallet
-    // Route::get('/wallet', [WalletController::class, 'index'])
-    //     ->name('wallet.index');
-    // Route::post('/wallet/topup', [WalletController::class, 'topup'])
-    //     ->name('wallet.topup');
-
     // Auctions — /create and /my-bids MUST come before {listing}
     Route::get('/auctions/create', [AuctionController::class, 'create'])
         ->name('auctions.create');
@@ -122,6 +116,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('auctions.store');
     Route::post('/auctions/{listing}/bid', [AuctionController::class, 'bid'])
         ->name('auctions.bid');
+    Route::get('/auctions/{listing}/edit', [AuctionController::class, 'edit'])->name('auctions.edit');
+    Route::patch('/auctions/{listing}', [AuctionController::class, 'update'])->name('auctions.update');
+    Route::delete('/auctions/{listing}', [AuctionController::class, 'destroy'])->name('auctions.destroy');
 });
 
 // ── ADMIN ROUTES ──────────────────────────────────────────

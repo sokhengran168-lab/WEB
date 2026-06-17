@@ -8,6 +8,7 @@
     "require": {
         "php": "^8.2",
         "annexare/countries-list": "*",
+        "blade-ui-kit/blade-heroicons": "^2.7",
         "cloudinary-labs/cloudinary-laravel": "^3.0",
         "doctrine/dbal": "*",
         "laravel/framework": "^12.0",

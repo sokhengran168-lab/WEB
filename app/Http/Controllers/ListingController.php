@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Game;
 use App\Models\Listing;
+use App\Models\Transaction;
+use App\Models\User;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,12 +22,22 @@ class ListingController extends Controller
             'create', 'store', 'edit', 'update', 'destroy'
         ]);
     }
-    // Browse all active listings with filters
+
+    // ── Browse ────────────────────────────────────────────────────────────
     public function index(Request $request)
     {
-        $games = Game::where('is_active', true)->get();
 
-        // Feature listings for hero section
+        // ✅ Add stats HERE
+        $totalListings = Listing::where('status', 'active')->count();
+        $totalSales    = Transaction::where('status', 'completed')->count();
+        $totalSellers  = User::where('total_sales', '>', 0)->count();
+
+        $games = Game::where('is_active', true)
+            ->withCount(['listings' => fn($q) => $q->where('status', 'active')])
+            ->get();
+
+        $auctionCount = Listing::where('type', 'auction')->where('status', 'active')->count();
+
         $featured = Listing::with(['game', 'seller', 'firstImage'])
             ->where('status', 'active')
             ->where('type', 'fixed')
@@ -34,7 +46,6 @@ class ListingController extends Controller
             ->take(3)
             ->get();
 
-        // Live auction for homepage
         $liveAuctions = Listing::with(['game', 'seller', 'firstImage', 'highestBidder'])
             ->where('status', 'active')
             ->where('type', 'auction')
@@ -47,7 +58,6 @@ class ListingController extends Controller
             ->where('type', 'fixed')
             ->where(function ($query) {
                 $query->where('status', 'active');
-
                 if (Auth::check()) {
                     $query->orWhere(function ($query) {
                         $query->where('user_id', Auth::id())
@@ -55,38 +65,34 @@ class ListingController extends Controller
                     });
                 }
             })
-            ->when($request->search, fn($q) =>
-                $q->where('title', 'like', '%' . $request->search . '%')
-            )
-            ->when($request->game_id, fn($q) =>
-                $q->where('game_id', $request->game_id)
-            )
-            ->when($request->platform, fn($q) =>
-                $q->where('platform', $request->platform)
-            )
-            ->when($request->min_price, fn($q) =>
-                $q->where('price', '>=', $request->min_price)
-            )
-            ->when($request->max_price, fn($q) =>
-                $q->where('price', '<=', $request->max_price)
-            )
+            ->when($request->search,    fn($q) => $q->where('title', 'like', '%' . $request->search . '%'))
+            ->when($request->game_id,   fn($q) => $q->where('game_id', $request->game_id))
+            ->when($request->platform,  fn($q) => $q->where('platform', $request->platform))
+            ->when($request->min_price, fn($q) => $q->where('price', '>=', $request->min_price))
+            ->when($request->max_price, fn($q) => $q->where('price', '<=', $request->max_price))
             ->when($request->sort === 'price_asc',  fn($q) => $q->orderBy('price', 'asc'))
             ->when($request->sort === 'price_desc', fn($q) => $q->orderBy('price', 'desc'))
             ->when($request->sort === 'popular',    fn($q) => $q->orderBy('views_count', 'desc'))
             ->latest()
             ->paginate(12)
             ->withQueryString();
+            
+        if (request()->ajax()) {
+            return view('partials.listings-grid', compact('listings'));
+        }
 
         return view('listings.index', compact(
-            'listings', 'games', 'featured', 'liveAuctions'
+            'listings', 'games', 'featured', 'liveAuctions', 'auctionCount',
+            // ADD THESE
+            'totalListings',
+            'totalSales',
+            'totalSellers'
         ));
     }
 
-    // Show single listing detail
+    // ── Show ──────────────────────────────────────────────────────────────
     public function show(Listing $listing)
     {
-        // Only show active listings to the public.
-        // The listing owner may still view their own listing while it is pending review.
         if ($listing->status !== 'active' && (!Auth::check() || Auth::id() !== $listing->user_id)) {
             abort(404);
         }
@@ -106,7 +112,7 @@ class ListingController extends Controller
         return view('listings.show', compact('listing', 'related'));
     }
 
-    // Show create listing form
+    // ── Create ────────────────────────────────────────────────────────────
     public function create()
     {
         if (!Auth::check()) {
@@ -126,17 +132,15 @@ class ListingController extends Controller
             session()->flash('warning', 'Complete seller onboarding to publish, or continue to create a draft.');
         }
 
-        return view('listings.create', compact('games', 'gamesData')); // ← add $gamesData
+        return view('listings.create', compact('games', 'gamesData'));
     }
 
-    // Save new listing
+    // ── Store ─────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
-        // dd($request->file('images'));
-
         $validated = $request->validate([
             'game_id'           => 'required|exists:games,id',
-            'description' => 'required|string',
+            'description'       => 'required|string',
             'title'             => 'required|string|max:255',
             'price'             => 'required|numeric|min:1',
             'rank'              => 'nullable|string|max:100',
@@ -150,61 +154,45 @@ class ListingController extends Controller
             'stock_source_note' => 'nullable|string|max:500',
             'images'            => 'required|array|min:1',
             'images.*'          => 'image|mimes:jpg,jpeg,png,webp|max:10240',
-
             'contact_telegram'  => [
                 'nullable',
                 'string',
                 function ($attribute, $value, $fail) {
-                    // Accept full URL or just username
                     if (preg_match('/(?:https?:\/\/)?(?:t\.me|telegram\.me)\/([^\s\/?#]+)/i', $value, $matches)) {
                         $username = $matches[1];
                     } else {
                         $username = ltrim($value, '@');
                     }
-
-                    // Telegram username rules: 5-32 chars, letters/numbers/underscore only
                     if (!preg_match('/^[a-zA-Z0-9][a-zA-Z0-9_]{3,30}[a-zA-Z0-9]$/', $username)) {
-                        $fail('Telegram username must be 5–32 characters, letters, numbers and underscores only. Example: @myusername');
+                        $fail('Telegram username must be 5–32 characters, letters, numbers and underscores only.');
                     }
                 },
             ],
         ]);
 
-        // Parse Telegram link to extract username
+        // Normalise Telegram to plain username
         if (!empty($validated['contact_telegram'])) {
             $telegram = $validated['contact_telegram'];
-
-            // Try to extract username from various formats
             if (preg_match('/(?:https?:\/\/)?(?:www\.)?(?:t\.me|telegram\.me)\/([^\s\/?#]+)/i', $telegram, $matches)) {
                 $telegram = $matches[1];
-            } else if (preg_match('/(?:t\.me|telegram\.me)\/([^\s\/?#]+)/i', $telegram, $matches)) {
-                $telegram = $matches[1];
             }
-
-            // Clean username - remove @ and invalid chars
             $telegram = preg_replace('/^[@#]/', '', $telegram);
             $telegram = preg_replace('/[^\w.-]/', '', $telegram);
             $validated['contact_telegram'] = $telegram ?: $validated['contact_telegram'];
         }
 
-
-        // ── Auto-flag check ────────────────────────────────
+        // Auto-flag checks
         $isFlagged  = false;
         $flagReason = null;
 
-        // Flag new accounts (registered less than 24 hours ago)
         if (auth()->user()->created_at->diffInHours(now()) < 24) {
             $isFlagged  = true;
             $flagReason = 'New account — registered less than 24 hours ago';
         }
-
-        // Flag suspiciously low price
         if ($validated['price'] < 3) {
             $isFlagged  = true;
             $flagReason = 'Suspicious price — under $3';
         }
-
-        // Flag suspicious keywords in title
         foreach (['hack', 'cheat', 'stolen', 'illegal', 'fake'] as $word) {
             if (stripos($validated['title'], $word) !== false) {
                 $isFlagged  = true;
@@ -212,46 +200,19 @@ class ListingController extends Controller
                 break;
             }
         }
-        // ──────────────────────────────────────────────────
 
         $listing = Listing::create([
             ...$validated,
             'user_id'     => auth()->id(),
-            'status'      => 'active',  // instantly live
+            'status'      => 'active',
             'type'        => 'fixed',
             'is_flagged'  => $isFlagged,
             'flag_reason' => $flagReason,
             'flagged_at'  => $isFlagged ? now() : null,
         ]);
 
-        // foreach ($request->file('images', []) as $index => $image) {
-        //     $path = $image->store('listings/' . $listing->id, 'public');
-        //     $listing->images()->create([
-        //         'image_path' => $path,
-        //         'is_proof'   => true,
-        //         'sort_order' => $index,
-        //     ]);
-        // }
-
         foreach ($request->file('images', []) as $index => $image) {
-
-            if (config('filesystems.disks.cloudinary.url')) {
-
-                $result = cloudinary()->uploadApi()->upload(
-                    $image->getRealPath(),
-                    [
-                        'folder' => 'gametradehub/listings/' . $listing->id,
-                        'resource_type' => 'image',
-                    ]
-                );
-
-                $path = $result['secure_url'];
-
-            } else {
-                // fallback to local
-                $path = $image->store('listings/' . $listing->id, 'public');
-            }
-
+            $path = $this->uploadImage($image, $listing->id);
             $listing->images()->create([
                 'image_path' => $path,
                 'is_proof'   => true,
@@ -263,107 +224,162 @@ class ListingController extends Controller
             ? 'Listing is live! Note: it has been flagged for admin review.'
             : '🎉 Listing is live! Buyers can now find your account.';
 
-        return redirect()
-            ->route('dashboard')
-            ->with('success', $message);
+        return redirect()->route('dashboard')->with('success', $message);
     }
 
-    // Show edit form
+    // ── Edit ──────────────────────────────────────────────────────────────
     public function edit(Listing $listing)
     {
         $this->authorize('update', $listing);
 
         $games = Game::where('is_active', true)->get();
 
-        // Auction listings use a different edit view
-        if($listing->isAuction()) {
+        if ($listing->isAuction()) {
             return view('auctions.edit', compact('listing', 'games'));
         }
 
-        return view('listings.edit', compact('listing', 'games'));
+        $gamesData = $games->map(function ($game) {
+            return [
+                'id' => $game->id,
+                'ranks' => $game->ranks ?? [],
+                'servers' => $game->servers ?? [],
+            ];
+        })->values(); // important!
+
+        return view('listings.edit', compact('listing', 'games', 'gamesData'));
     }
 
-    // Update listing
+    // ── Update ────────────────────────────────────────────────────────────
     public function update(Request $request, Listing $listing)
     {
         $this->authorize('update', $listing);
 
-        // Different validation for auction vs fixed
-        if ($listing->isAuction()){
+        if ($listing->isAuction()) {
             $validated = $request->validate([
-                'game_id'     => 'required|exists:games,id',
-                'title'       => 'required|string|max:255',
-                'starting_price' => 'required|numeric|min:1',
-                'bid_increment' => 'required|numeric|min:0.5',
-                'auction_ends_at' => 'required|date|after:now',
-                //'price'       => 'required|numeric|min:1',
-                'rank'        => 'nullable|string|max:100',
-                'level'       => 'nullable|integer|min:1',
-                'platform'    => 'required|in:Mobile,PC,Console',
+                'game_id'          => 'required|exists:games,id',
+                'title'            => 'required|string|max:255',
+                'starting_price'   => 'required|numeric|min:1',
+                'bid_increment'    => 'required|numeric|min:0.5',
+                'auction_ends_at'  => 'required|date|after:now',
+                'rank'             => 'nullable|string|max:100',
+                'level'            => 'nullable|integer|min:1',
+                'platform'         => 'required|in:Mobile,PC,Console',
             ]);
-            // Re-submit for admin approval after edit
+
             $listing->update([
                 ...$validated,
-                'price'=> $validated['starting_price'],
+                'price'  => $validated['starting_price'],
                 'status' => 'active',
             ]);
         } else {
             $validated = $request->validate([
-                'game_id' =>'required|exists:games,id',
-                'title' => 'required|string|max:255',
-                'price' => 'required|numeric|min:1',
-                'rank' => 'nullable|string|max:100',
-                'level' => 'nullable|integer|min:1',
-                'platform' => 'required|in:Mobile,PC,Console',
-
+                'game_id'          => 'required|exists:games,id',
+                'title'            => 'required|string|max:255',
+                'price'            => 'required|numeric|min:1',
+                'rank'             => 'nullable|string|max:100',
+                'level'            => 'nullable|integer|min:1',
+                'platform'         => 'required|in:Mobile,PC,Console',
+                'description'      => 'nullable|string',
+                'contact_telegram' => 'nullable|string|max:100',
+                'contact_whatsapp' => 'nullable|string|max:20',
+                'contact_discord'  => 'nullable|string|max:100',
+                'seller_phone'     => 'nullable|string|max:20',
+                // image validation — nullable because keeping existing is valid
+                'images'           => 'nullable|array|max:8',
+                'images.*'         => 'image|mimes:jpg,jpeg,png,webp|max:10240',
+                'delete_images'    => 'nullable|array',
+                'delete_images.*'  => 'integer|exists:listing_images,id',
             ]);
+
             $listing->update([
                 ...$validated,
                 'status' => 'active',
             ]);
         }
 
-        return redirect()
-            ->route('dashboard')
-            ->with('success', ' Listing updated successfully!');
+        // ── Delete selected existing images ───────────────────────────────
+        if ($request->filled('delete_images')) {
+            foreach ($request->delete_images as $imageId) {
+                $image = $listing->images()->find($imageId);
+                if (!$image) continue;
+
+                $this->deleteImage($image->image_path);
+                $image->delete();
+            }
+        }
+
+        // ── Upload new images (same logic as store) ───────────────────────
+        if ($request->hasFile('images')) {
+            // Next sort_order after existing images
+            $nextOrder = $listing->images()->max('sort_order') + 1;
+
+            foreach ($request->file('images') as $index => $file) {
+                $path = $this->uploadImage($file, $listing->id);
+                $listing->images()->create([
+                    'image_path' => $path,
+                    'is_proof'   => true,
+                    'sort_order' => $nextOrder + $index,
+                ]);
+            }
+        }
+
+        return redirect()->route('dashboard')->with('success', 'Listing updated successfully!');
     }
 
-    // Delete listing
+    // ── Destroy ───────────────────────────────────────────────────────────
     public function destroy(Listing $listing)
     {
         $this->authorize('delete', $listing);
 
-        // Delete all images from storage
-        // foreach ($listing->images as $image) {
-        //     Storage::disk('public')->delete($image->image_path);
-        // }
-
-        foreach ($listing->images as $image) {
-            if (str_starts_with($image->image_path, 'http') && config('filesystems.disks.cloudinary.url')) {
-                // Extract public_id from Cloudinary URL and delete
-                preg_match('/upload\/(?:v\d+\/)?(.+?)(?:\.\w+)?$/', $image->image_path, $matches);
-                if (!empty($matches[1])) {
-                    cloudinary()->uploadApi()->destroy($matches[1]);
-                }
-            } else {
-                Storage::disk('public')->delete($image->image_path);
-            }
-        }
-
-        // $listing->delete();
-
         DB::transaction(function () use ($listing) {
-
             foreach ($listing->images as $image) {
-                // delete files
+                $this->deleteImage($image->image_path);
+                $image->delete();
             }
-
             $listing->delete();
-
         });
 
-        return redirect()
-            ->route('dashboard')
-            ->with('success', 'Listing deleted.');
+        return redirect()->route('dashboard')->with('success', 'Listing deleted.');
+    }
+
+    // ── Private helpers ───────────────────────────────────────────────────
+
+    /**
+     * Upload one image to Cloudinary (if configured) or local disk.
+     * Returns the stored path/URL saved to image_path.
+     */
+    private function uploadImage($file, int $listingId): string
+    {
+        if (config('filesystems.disks.cloudinary.url')) {
+            $result = cloudinary()->uploadApi()->upload(
+                $file->getRealPath(),
+                [
+                    'folder'        => 'gametradehub/listings/' . $listingId,
+                    'resource_type' => 'image',
+                ]
+            );
+            return $result['secure_url'];
+        }
+
+        // Fallback: local public disk
+        return $file->store('listings/' . $listingId, 'public');
+    }
+
+    /**
+     * Delete one image from Cloudinary (if configured) or local disk.
+     * Accepts the value stored in image_path.
+     */
+    private function deleteImage(string $imagePath): void
+    {
+        if (str_starts_with($imagePath, 'http') && config('filesystems.disks.cloudinary.url')) {
+            // Extract Cloudinary public_id from the secure URL
+            // e.g. https://res.cloudinary.com/demo/image/upload/v123/gametradehub/listings/5/abc.jpg
+            //   → public_id = gametradehub/listings/5/abc
+            if (preg_match('/upload\/(?:v\d+\/)?(.+?)(?:\.\w+)?$/', $imagePath, $matches)) {
+                cloudinary()->uploadApi()->destroy($matches[1]);
+            }
+        } else {
+            Storage::disk('public')->delete($imagePath);
+        }
     }
 }

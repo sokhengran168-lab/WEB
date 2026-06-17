@@ -240,19 +240,32 @@
                     </div>
                     <div class="flex flex-col gap-2">
                         @if($transaction->listing->contact_telegram)
-                        <a href="https://t.me/{{ $transaction->listing->contact_telegram }}"
-                           target="_blank"
-                           class="flex items-center gap-2 bg-sky-500/10 border border-sky-500/20
-                                  rounded-xl px-3 py-2 hover:bg-sky-500/20 transition">
-                            <span class="text-base">✈️</span>
-                            <div>
-                                <div class="text-xs text-gray-400">Telegram</div>
-                                <div class="text-sm font-semibold text-sky-400">
-                                    @{{ $transaction->listing->contact_telegram }}
+                            @php
+                                $telegram = $transaction->listing->contact_telegram;
+
+                                // Remove full URL if user pasted it
+                                $telegram = preg_replace('/^https?:\/\/(t\.me|telegram\.me)\//', '', $telegram);
+
+                                // Remove @ if exists
+                                $telegram = ltrim($telegram, '@');
+                            @endphp
+
+                            <a href="https://t.me/{{ $telegram }}"
+                            target="_blank"
+                            class="flex items-center gap-2 bg-sky-500/10 border border-sky-500/20
+                                    rounded-xl px-3 py-2 hover:bg-sky-500/20 transition">
+
+                                <span class="text-base">✈️</span>
+
+                                <div>
+                                    <div class="text-xs text-gray-400">Telegram</div>
+                                    <div class="text-sm font-semibold text-sky-400">
+                                        {{ $telegram }}
+                                    </div>
                                 </div>
-                            </div>
-                            <span class="ml-auto text-sky-400 text-xs">Open →</span>
-                        </a>
+
+                                <span class="ml-auto text-sky-400 text-xs">Open →</span>
+                            </a>
                         @endif
                         @if($transaction->listing->contact_whatsapp)
                         <a href="https://wa.me/{{ $transaction->listing->contact_whatsapp }}"
@@ -344,7 +357,22 @@
                 </div>
                 <div class="bg-gray-800 rounded-xl p-4">
                     <div class="flex items-center justify-between mb-2">
-                        <div class="text-yellow-400 text-lg">{!! $review->stars() !!}</div>
+                        <div class="flex items-center gap-1">
+                            @for ($i = 1; $i <= 5; $i++)
+                                @if($i <= $review->rating)
+                                    <!-- filled star -->
+                                    <svg class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                                        <path d="M12 17.27L18.18 21 16.54 13.47 22 9.24 14.81 8.62 12 2 9.19 8.62 2 9.24 7.46 13.47 5.82 21z"/>
+                                    </svg>
+                                @else
+                                    <!-- empty star -->
+                                    <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                            d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.975 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118L3.464 9.11c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/>
+                                    </svg>
+                                @endif
+                            @endfor
+                        </div>
                         <span class="text-xs text-gray-500">
                             {{ $review->created_at->format('M d, Y') }}
                         </span>
@@ -356,8 +384,15 @@
                           class="mt-3"
                           onsubmit="return confirm('Delete your review?')">
                         @csrf @method('DELETE')
-                        <button class="text-xs text-red-400 hover:text-red-300 transition">
-                            🗑️ Delete review
+                        <button class="flex items-center gap-2 text-xs text-red-400 hover:text-red-300 transition">
+
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7V4h6v3"/>
+                            </svg>
+
+                            <span>Delete</span>
+
                         </button>
                     </form>
                 </div>
@@ -379,11 +414,16 @@
                                     @click="rating = {{ $i }}"
                                     @mouseenter="hover = {{ $i }}"
                                     @mouseleave="hover = 0"
-                                    class="text-3xl transition-transform hover:scale-110">
-                                <span :class="(hover || rating) >= {{ $i }}
-                                              ? 'text-yellow-400' : 'text-gray-700'"
-                                      x-text="(hover || rating) >= {{ $i }} ? '★' : '☆'">
-                                </span>
+                                    class="transition-transform hover:scale-110">
+
+                                <svg class="w-8 h-8"
+                                    :class="(hover || rating) >= {{ $i }} ? 'text-yellow-400' : 'text-gray-700'"
+                                    fill="currentColor"
+                                    viewBox="0 0 24 24">
+
+                                    <path d="M12 17.27L18.18 21 16.54 13.47 22 9.24 14.81 8.62 12 2 9.19 8.62 2 9.24 7.46 13.47 5.82 21z"/>
+                                </svg>
+
                             </button>
                             @endfor
                         </div>

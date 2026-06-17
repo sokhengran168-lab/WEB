@@ -179,6 +179,41 @@
         {{-- Right — Bid Box --}}
         <div>
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 sticky top-20">
+                {{-- Seller Actions --}}
+@auth
+    @if($listing->user_id === auth()->id())
+
+        {{-- Edit button --}}
+        @if(!$listing->hasEnded() && $listing->bids()->count() === 0)
+            <a href="{{ route('auctions.edit', $listing) }}"
+               class="block w-full text-center bg-indigo-600 hover:bg-indigo-500 text-white
+                      py-2.5 rounded-xl font-bold text-sm transition mb-3">
+                ✏️ Edit Auction
+            </a>
+        @else
+            <div class="bg-gray-800 text-center text-xs text-gray-400 p-2 rounded-xl mb-3">
+                Editing disabled after bids start
+            </div>
+        @endif
+
+        {{-- Delete button --}}
+        @if($listing->bids()->count() === 0)
+            <form method="POST" action="{{ route('auctions.destroy', $listing) }}"
+                  onsubmit="return confirm('Delete this auction? This cannot be undone.')"
+                  class="mb-3">
+                @csrf
+                @method('DELETE')
+
+                <button type="submit"
+                        class="w-full bg-red-600/20 hover:bg-red-600/40 text-red-400
+                               border border-red-500/30 py-2 rounded-xl text-sm font-bold transition">
+                    🗑️ Delete Auction
+                </button>
+            </form>
+        @endif
+
+    @endif
+@endauth
 
                 {{-- Timer --}}
                 <div class="bg-yellow-500/10 border border-yellow-500/20 rounded-xl
