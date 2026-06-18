@@ -11,6 +11,7 @@ use App\Http\Controllers\ListingController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\WalletController;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -98,6 +99,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     ->name('transactions.card');
     Route::post('/transactions/{transaction}/pay', [TransactionController::class, 'pay'])
     ->name('transactions.pay');
+
+    Route::get('/wallet', [WalletController::class, 'index'])
+        ->name('wallet.index');
 
 
     // Reviews

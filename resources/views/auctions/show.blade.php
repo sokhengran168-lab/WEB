@@ -128,7 +128,10 @@
 
             {{-- Description+ --}}
             <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
-                <h3 class="font-bold mb-3">📝 Description</h3>
+                <h3 class="font-bold mb-3">
+                    <i class="fa-solid fa-file-lines text-gray-400"></i>
+                    Description
+                </h3>
                 <p class="text-gray-300 text-sm leading-relaxed whitespace-pre-line">
                     {{ $listing->description }}
                 </p>
@@ -137,7 +140,8 @@
             {{-- Bid History --}}
             <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
                 <div class="px-4 py-3 border-b border-gray-800 font-bold text-sm">
-                    📋 Bid History (<span id="bidCount">{{ $bidHistory->count() }}</span>)
+                    <i class="fa-solid fa-gavel text-gray-400"></i>
+                    Bid History (<span id="bidCount">{{ $bidHistory->count() }}</span>)
                 </div>
                 <div id="bidHistoryBox">
                     @forelse($bidHistory as $bid)
@@ -346,112 +350,87 @@
                 @endauth
 
                 {{-- Escrow notice --}}
-                <div class="mt-4 pt-4 border-t border-gray-800 text-xs text-gray-500
-                            flex flex-col gap-1.5">
-                    <span>🔒 Winner pays via escrow — funds safe</span>
-                    <span>⏰ Bid increment: ${{ number_format($listing->bid_increment, 2) }}</span>
-                    <span>📅 Ends: {{ $listing->auction_ends_at->format('M d, Y · H:i') }}</span>
+                <div class="mt-4 pt-4 border-t border-gray-800 text-xs text-gray-400 flex flex-col gap-2">
+
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-lock text-cyan-400 text-[11px]"></i>
+                        <span>
+                            Winner pays via <span class="text-cyan-400 font-semibold">escrow</span> — funds are safe
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-arrow-up-right-dots text-yellow-400 text-[11px]"></i>
+                        <span>
+                            Bid increment:
+                            <span class="text-white font-semibold">
+                                ${{ number_format($listing->bid_increment, 2) }}
+                            </span>
+                        </span>
+                    </div>
+
+                    <div class="flex items-center gap-2">
+                        <i class="fa-solid fa-calendar text-indigo-400 text-[11px]"></i>
+                        <span>
+                            Ends:
+                            <span class="text-white font-semibold">
+                                {{ $listing->auction_ends_at->format('M d, Y · H:i') }}
+                            </span>
+                        </span>
+                    </div>
+
                 </div>
+
 
                 {{-- Share Buttons --}}
                 <div class="mt-4 pt-4 border-t border-gray-800" x-data="{ copied: false }">
-                    <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3
-                                flex items-center gap-2">
-                        <i class="fa-solid fa-share-nodes text-yellow-400"></i>
-                        Share This Auction
-                    </div>
 
-                    <div class="flex flex-col gap-2">
+                    <button onclick="handleShare()"
+                        class="w-full bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30
+                            text-yellow-400 py-3 rounded-xl font-bold text-sm transition">
+                        <i class="fa-solid fa-share-nodes"></i>
+                        Share Auction
+                    </button>
+                </div>
+                <div id="shareModal"
+                    class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
 
-                        <a href="https://api.whatsapp.com/send?text={{ urlencode('🏆 AUCTION: ' . $listing->title . ' | Bid now on GameTradeHub: ' . url()->current()) }}"
-                        target="_blank"
-                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
-                                duration-200 border border-green-500/20 bg-green-500/5
-                                hover:bg-green-500/15 hover:border-green-500/40
-                                hover:-translate-y-0.5">
-                            <div class="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center
-                                        flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
-                                <i class="fa-brands fa-whatsapp text-white text-base"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-xs font-bold text-green-400">WhatsApp</div>
-                                <div class="text-xs text-gray-500">Share this auction</div>
-                            </div>
-                        </a>
+                    <div class="bg-gray-900 p-5 rounded-xl w-80">
 
-                        <a href="https://t.me/share/url?url={{ urlencode(url()->current()) }}&text={{ urlencode('🏆 AUCTION: ' . $listing->title . ' | Bid now!') }}"
-                        target="_blank"
-                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
-                                duration-200 border border-sky-500/20 bg-sky-500/5
-                                hover:bg-sky-500/15 hover:border-sky-500/40
-                                hover:-translate-y-0.5">
-                            <div class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center
-                                        flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
-                                <i class="fa-brands fa-telegram text-white text-base"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-xs font-bold text-sky-400">Telegram</div>
-                                <div class="text-xs text-gray-500">Share to channel</div>
-                            </div>
-                        </a>
+                        <h3 class="font-bold mb-4">Share this auction</h3>
 
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}"
-                        target="_blank"
-                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
-                                duration-200 border border-blue-500/20 bg-blue-500/5
-                                hover:bg-blue-500/15 hover:border-blue-500/40
-                                hover:-translate-y-0.5">
-                            <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center
-                                        flex-shrink-0 group-hover:scale-110 transition-transform duration-200">
-                                <i class="fa-brands fa-facebook-f text-white text-base"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-xs font-bold text-blue-400">Facebook</div>
-                                <div class="text-xs text-gray-500">Share to timeline</div>
-                            </div>
-                        </a>
+                        <div class="flex flex-col gap-2">
 
-                        <a href="https://twitter.com/intent/tweet?text={{ urlencode('🏆 AUCTION: ' . $listing->title) }}&url={{ urlencode(url()->current()) }}"
-                        target="_blank"
-                        class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
-                                duration-200 border border-gray-600/30 bg-gray-800/50
-                                hover:bg-gray-800 hover:border-gray-500/50
-                                hover:-translate-y-0.5">
-                            <div class="w-8 h-8 bg-black rounded-lg flex items-center justify-center
-                                        flex-shrink-0 border border-gray-700
-                                        group-hover:scale-110 transition-transform duration-200">
-                                <i class="fa-brands fa-x-twitter text-white text-base"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-xs font-bold text-gray-300">X (Twitter)</div>
-                                <div class="text-xs text-gray-500">Tweet this auction</div>
-                            </div>
-                        </a>
+                            <button onclick="shareTo('whatsapp')"
+                                class="bg-green-500/10 text-green-400 py-2 rounded">
+                                WhatsApp
+                            </button>
 
-                        <button @click="
-                                navigator.clipboard.writeText('{{ url()->current() }}');
-                                copied = true;
-                                setTimeout(() => copied = false, 2500)"
-                                class="group flex items-center gap-3 rounded-xl px-4 py-2.5 transition-all
-                                    duration-200 border w-full text-left
-                                    border-yellow-500/20 bg-yellow-500/5
-                                    hover:bg-yellow-500/15 hover:border-yellow-500/40
-                                    hover:-translate-y-0.5">
-                            <div class="w-8 h-8 rounded-lg flex items-center justify-center
-                                        flex-shrink-0 transition-all duration-200 group-hover:scale-110"
-                                :class="copied ? 'bg-green-500' : 'bg-yellow-500'">
-                                <i class="text-black text-base"
-                                :class="copied ? 'fa-solid fa-check' : 'fa-solid fa-link'"></i>
-                            </div>
-                            <div class="flex-1">
-                                <div class="text-xs font-bold"
-                                    :class="copied ? 'text-green-400' : 'text-yellow-400'"
-                                    x-text="copied ? 'Link Copied!' : 'Copy Link'">
-                                </div>
-                                <div class="text-xs text-gray-500">
-                                    Share the auction link
-                                </div>
-                            </div>
+                            <button onclick="shareTo('telegram')"
+                                class="bg-sky-500/10 text-sky-400 py-2 rounded">
+                                Telegram
+                            </button>
+
+                            <button onclick="shareTo('facebook')"
+                                class="bg-blue-500/10 text-blue-400 py-2 rounded">
+                                Facebook
+                            </button>
+
+                            <button onclick="shareTo('twitter')"
+                                class="bg-gray-700 text-gray-300 py-2 rounded">
+                                X (Twitter)
+                            </button>
+
+                            <button onclick="shareTo('copy')"
+                                class="bg-yellow-500/10 text-yellow-400 py-2 rounded">
+                                Copy Link
+                            </button>
+
+                        </div>
+
+                        <button onclick="closeShareModal()"
+                            class="mt-4 text-xs text-gray-400">
+                            Close
                         </button>
 
                     </div>
@@ -628,8 +607,25 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
 });
-``
 
+function handleShare() {
+
+    const url = "{{ url()->current() }}";
+    const title = "{{ $listing->title }}";
+
+    if (navigator.share) {
+        // ✅ Mobile (REAL apps experience)
+        navigator.share({
+            title: title,
+            text: "🏆 " + title,
+            url: url
+        }).catch(console.error);
+
+    } else {
+        // ✅ Desktop fallback
+        openShareModal();
+    }
+}
 // Live countdown timer
 function updateCountdown() {
     const el = document.getElementById('countdown');
@@ -659,6 +655,35 @@ function updateCountdown() {
         el.classList.add('text-red-400');
         el.classList.remove('text-yellow-400');
     }
+}
+function openShareModal() {
+    document.getElementById('shareModal').classList.remove('hidden');
+}
+
+function closeShareModal() {
+    document.getElementById('shareModal').classList.add('hidden');
+}
+
+function shareTo(platform) {
+    fetch("{{ route('listings.share', $listing) }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({ platform })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (platform === 'copy') {
+            navigator.clipboard.writeText(data.url);
+            console.log("✅ Link copied!");
+            return;
+        }
+
+        window.open(data.url, "_blank");
+    });
 }
 
 updateCountdown();

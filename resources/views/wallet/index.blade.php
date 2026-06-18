@@ -1,4 +1,4 @@
-{{-----@extends('layouts.app')
+@extends('layouts.app')
 @section('title', 'My Wallet')
 
 @section('content')
@@ -7,7 +7,7 @@
     <h1 class="text-2xl font-bold mb-6">💰 My Earnings</h1>
 
     {{-- Balance Card --}}
-     {{--  <div class="bg-gradient-to-br from-indigo-600/20 to-cyan-600/10
+      <div class="bg-gradient-to-br from-indigo-600/20 to-cyan-600/10
                 border border-indigo-500/25 rounded-2xl p-6 mb-5 relative overflow-hidden">
         <div class="absolute right-4 top-4 text-7xl opacity-5">💰</div>
         <div class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">
@@ -17,12 +17,12 @@
             ${{ number_format(auth()->user()->wallet_balance, 2) }}
         </div>
         <div class="text-xs text-gray-500">
-            Seller earnings from completed sales · Escrow-protected
+            Your earnings from completed sales. Funds are released after escrow confirmation.
         </div>
     </div>
 
     {{-- Info box --}}
-     {{--  <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mb-5
+      <div class="bg-blue-500/10 border border-blue-500/20 rounded-xl p-4 mb-5
                 flex items-start gap-3">
         <span class="text-xl">ℹ️</span>
         <div>
@@ -35,7 +35,7 @@
     </div>
 
     {{-- Transaction History --}}
-     {{-- <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
+      <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
         <div class="px-4 py-3 border-b border-gray-800 flex items-center justify-between">
             <h2 class="font-bold">Transaction History</h2>
             <span class="text-xs text-gray-500">{{ $logs->total() }} records</span>
@@ -43,11 +43,8 @@
         @forelse($logs as $log)
         <div class="flex items-center gap-3 px-4 py-3 border-b border-gray-800/50 last:border-0">
             @php
-                $isCredit = in_array($log->type, ['topup', 'payout', 'refund', 'card_payment']);
+                $isCredit = in_array($log->type, ['payout', 'refund']);
                 $icons = [
-                    'topup'        => '💳',
-                    'card_payment' => '💳',
-                    'purchase'     => '🛒',
                     'payout'       => '💰',
                     'refund'       => '↩️',
                     'withdrawal'   => '🏦',
@@ -84,10 +81,5 @@
         </div>
     </div>
 
-<<<<<<< Updated upstream
-  {{--</div>---}}
-  {{--@endsection ----}}
-=======
 </div>
-@endsection --}}
->>>>>>> Stashed changes
+@endsection

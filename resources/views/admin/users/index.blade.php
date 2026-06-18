@@ -6,6 +6,7 @@
     <div class="flex items-center justify-between mb-5">
         <h1 class="text-2xl font-bold">👥 Users</h1>
         <form method="GET" class="flex gap-2">
+            {{-- Search --}}
             <input type="text" name="search"
                    value="{{ request('search') }}"
                    placeholder="Search name or email..."
@@ -24,6 +25,23 @@
                     Verified
                 </option>
             </select>
+
+            {{--  Sort (ADD HERE) --}}
+            <select name="sort"
+                class="bg-gray-800 border border-gray-700 rounded-xl px-3 py-1.5
+                    text-sm text-white">
+                <option value="">Sort</option>
+
+                <option value="wallet" {{ request('sort') === 'wallet' ? 'selected' : '' }}>
+                    Highest Balance
+                </option>
+
+                <option value="earned" {{ request('sort') === 'earned' ? 'selected' : '' }}>
+                    Top Earners
+                </option>
+            </select>
+            
+            {{-- Submit --}}
             <button class="bg-indigo-600 hover:bg-indigo-500 text-white
                            px-4 py-1.5 rounded-xl text-sm font-semibold transition">
                 Search

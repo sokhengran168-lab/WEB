@@ -62,12 +62,24 @@
                            value="{{ request('search') }}"
                            placeholder="Search by game, rank, server…"
                            autocomplete="off"
+                           oninput="toggleClearBtn()"
                            class="w-full pl-11 pr-4 py-3.5 rounded-xl text-sm text-white
                                   placeholder-gray-600 outline-none transition-all duration-200"
                            style="background: rgba(255,255,255,0.05);
                                   border: 1px solid rgba(255,255,255,0.1);"
                            onfocus="this.style.borderColor='rgba(99,102,241,0.6)'; this.style.boxShadow='0 0 0 3px rgba(99,102,241,0.15)'"
                            onblur="this.style.borderColor='rgba(255,255,255,0.1)'; this.style.boxShadow='none'">
+
+<button type="button"
+            id="clearSearchBtn"
+            onclick="clearSearch()"
+            class="hidden absolute right-3 top-1/2 -translate-y-1/2
+                   text-gray-500 hover:text-white transition">
+
+        <i class="fa-solid fa-xmark text-sm"></i>
+
+    </button>
+
                 </div>
                 <button type="submit"
                         class="px-6 py-3.5 rounded-xl text-white text-sm font-bold tracking-wide
@@ -86,7 +98,7 @@
         <div class="flex flex-wrap justify-center gap-2 mb-10" id="trendingChips">
             @foreach($games->shuffle()->take(7) as $game)
             <button type="button"
-                    onclick="quickSearch('{{ addslashes($game->name) }}')"
+                    onclick="quickSearch('{{ addslashes($game->name) }}', {{ $game->id }})"
                     class="px-4 py-2 rounded-full text-xs font-medium transition-all duration-150
                            text-gray-400 hover:text-indigo-300 active:scale-95"
                     style="background: rgba(255,255,255,0.04);
@@ -325,7 +337,7 @@
             </div>
         </form>
 
-        <div id="listingsArea">
+        <div id="listingsArea" class="transition-all duration-300 will-change-transform opacity-100 translate-y-0">
             @include('partials.listings-grid', ['listings' => $listings])
         </div>
 
@@ -376,19 +388,64 @@ document.addEventListener('DOMContentLoaded', () => {
     const filterForm   = document.getElementById('filterForm');
     const listingsArea = document.getElementById('listingsArea');
     let debounce;
+    // toggleClearBtn();
+
+    if (!filterForm || !listingsArea) return;
 
     function loadListings() {
         const params = new URLSearchParams(new FormData(filterForm)).toString();
-        listingsArea.innerHTML = '<div style="text-align:center;padding:48px 0;color:#4b5563;font-size:14px;">Loading…</div>';
+
+        // listingsArea.style.opacity = '0.4';
+        listingsArea.classList.add('opacity-0', 'translate-y-2');
+
         fetch("{{ route('home') }}?" + params, {
             headers: { 'X-Requested-With': 'XMLHttpRequest' }
         })
         .then(r => r.text())
         .then(html => {
             listingsArea.innerHTML = html;
+
+            requestAnimationFrame(() => {
+                listingsArea.classList.remove('opacity-0', 'translate-y-2');
+            });
+
             history.replaceState(null, '', '?' + params);
         });
     }
+
+window.toggleClearBtn = function () {
+    const input = document.getElementById('heroSearchInput');
+    const btn = document.getElementById('clearSearchBtn');
+
+    if (input.value.trim().length > 0) {
+        btn.classList.remove('hidden');
+    } else {
+        btn.classList.add('hidden');
+    }
+};
+
+
+window.clearSearch = function () {
+    const input = document.getElementById('heroSearchInput');
+    const btn = document.getElementById('clearSearchBtn');
+
+    input.value = '';
+    btn.classList.add('hidden');
+    input.focus();
+
+    const searchHidden = filterForm.querySelector('[name="search"]');
+    if (searchHidden) searchHidden.value = '';
+
+    const gameInput = filterForm.querySelector('[name="game_id"]');
+    if (gameInput) gameInput.value = '';
+
+    document.querySelectorAll('[data-filter]').forEach(el => {
+        el.classList.remove('bg-indigo-600', 'text-white');
+        el.classList.add('bg-gray-900', 'text-gray-400', 'border', 'border-gray-800');
+    });
+
+    loadListings();
+};
 
     // Hero search form
     document.getElementById('searchForm').addEventListener('submit', function (e) {
@@ -412,13 +469,17 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Live search while typing in hero
-    document.getElementById('heroSearchInput').addEventListener('keyup', function () {
-        const q = this.value;
-        const hidden = filterForm.querySelector('[name="search"]');
-        if (hidden) hidden.value = q;
-        clearTimeout(debounce);
-        debounce = setTimeout(loadListings, 300);
-    });
+document.getElementById('heroSearchInput').addEventListener('input', function () {
+    toggleClearBtn();
+
+    const q = this.value;
+    const hidden = filterForm.querySelector('[name="search"]');
+
+    if (hidden) hidden.value = q;
+
+    clearTimeout(debounce);
+    debounce = setTimeout(loadListings, 300);
+});
 
     // Filter selects
     filterForm.querySelectorAll('select').forEach(el => {
@@ -443,19 +504,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Quick search from chip click
-    window.quickSearch = function (value) {
-        document.getElementById('heroSearchInput').value = value;
-        const hidden = filterForm.querySelector('[name="search"]');
-        if (hidden) hidden.value = value;
-        else {
-            const h = document.createElement('input');
-            h.type = 'hidden'; h.name = 'search'; h.value = value;
-            filterForm.appendChild(h);
+    window.quickSearch = function (value, gameId = null) {
+        toggleClearBtn();
+
+        // update input UI
+        document.getElementById('heroSearchInput').value = value || '';
+
+        // set search
+        let searchInput = filterForm.querySelector('[name="search"]');
+        if (!searchInput) {
+            searchInput = document.createElement('input');
+            searchInput.type = 'hidden';
+            searchInput.name = 'search';
+            filterForm.appendChild(searchInput);
         }
+
+        searchInput.value = value || '';
+
+        // set game_id
+        if (gameId) {
+            let gameInput = filterForm.querySelector('[name="game_id"]');
+
+            if (!gameInput) {
+                gameInput = document.createElement('input');
+                gameInput.type = 'hidden';
+                gameInput.name = 'game_id';
+                filterForm.appendChild(gameInput);
+            }
+
+            gameInput.value = gameId;
+        }
+
         clearTimeout(debounce);
+
         debounce = setTimeout(() => {
+
             loadListings();
-            // document.getElementById('browse').scrollIntoView({ behavior: 'smooth' });
 
             const browse = document.getElementById('browse');
             if (window.scrollY < browse.offsetTop - 100) {
@@ -470,9 +554,10 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
 
         const url = new URL(this.href);
+        history.pushState(null, '', url);
+
         const params = url.searchParams;
 
-        // Update hidden inputs in filter form
         let gameInput = filterForm.querySelector('[name="game_id"]');
 
         if (!gameInput) {
@@ -482,30 +567,22 @@ document.addEventListener('DOMContentLoaded', () => {
             filterForm.appendChild(gameInput);
         }
 
-        gameInput.value = params.get('game_id') || '';
+        const gameId = params.get('game_id') || '';
+        gameInput.value = gameId;
 
-        // also keep search if exists
-        const search = params.get('search');
-        if (search) {
-            let searchInput = filterForm.querySelector('[name="search"]');
-            if (!searchInput) {
-                searchInput = document.createElement('input');
-                searchInput.type = 'hidden';
-                searchInput.name = 'search';
-                filterForm.appendChild(searchInput);
-            }
-            searchInput.value = search;
-        }
+        // ADD THIS PART (UI update)
+        document.querySelectorAll('[data-filter]').forEach(el => {
+            el.classList.remove('bg-indigo-600', 'text-white');
+            el.classList.add('bg-gray-900', 'text-gray-400', 'border', 'border-gray-800');
+        });
+
+        this.classList.remove('bg-gray-900', 'text-gray-400', 'border', 'border-gray-800');
+        this.classList.add('bg-indigo-600', 'text-white');
 
         loadListings();
-
-    // const browse = document.getElementById('browse');
-
-    // if (window.scrollY < browse.offsetTop - 100) {
-    //     browse.scrollIntoView({ behavior: 'smooth' });
-    // }
     });
 });
+
 });
 </script>
 @endpush

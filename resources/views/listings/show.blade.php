@@ -16,6 +16,13 @@
            class="hover:text-white transition">{{ $listing->game->name }}</a>
         <span>›</span>
         <span class="text-gray-300 truncate">{{ $listing->title }}</span>
+
+        @if($listing->status === 'reserved')
+        <div class="bg-yellow-500/10 border border-yellow-500/30 p-3 rounded-xl text-yellow-300 text-sm mb-5">
+            🚧 This listing is currently reserved by a buyer.
+        </div>
+        @endif
+
     </div>
 
     @if(Auth::check() && Auth::id() === $listing->user_id && $listing->status !== 'active')
@@ -362,37 +369,64 @@
 
                 {{-- Share --}}
                 <div class="border-t border-gray-800 pt-4 mb-4">
-                    <div class="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">
-                        Share
-                    </div>
-                    <div class="grid grid-cols-2 gap-2">
-                        <a href="https://api.whatsapp.com/send?text={{ urlencode($listing->title . ' — $' . number_format($listing->price, 2) . ' | ' . url()->current()) }}"
-                           target="_blank"
-                           class="flex items-center justify-center gap-1.5 py-2 rounded-xl border
-                                  border-green-500/20 bg-green-500/5 hover:bg-green-500/15
-                                  text-green-400 text-xs font-semibold transition">
-                            WhatsApp
-                        </a>
-                        <a href="https://t.me/share/url?url={{ urlencode(url()->current()) }}&text={{ urlencode($listing->title) }}"
-                           target="_blank"
-                           class="flex items-center justify-center gap-1.5 py-2 rounded-xl border
-                                  border-sky-500/20 bg-sky-500/5 hover:bg-sky-500/15
-                                  text-sky-400 text-xs font-semibold transition">
-                            Telegram
-                        </a>
-                        <a href="https://www.facebook.com/sharer/sharer.php?u={{ urlencode(url()->current()) }}"
-                           target="_blank"
-                           class="flex items-center justify-center gap-1.5 py-2 rounded-xl border
-                                  border-blue-500/20 bg-blue-500/5 hover:bg-blue-500/15
-                                  text-blue-400 text-xs font-semibold transition">
-                            Facebook
-                        </a>
-                        <button id="copyLinkBtn" data-url="{{ url()->current() }}"
-                                class="flex items-center justify-center gap-1.5 py-2 rounded-xl border
-                                       border-indigo-500/20 bg-indigo-500/5 hover:bg-indigo-500/15
-                                       text-indigo-400 text-xs font-semibold transition w-full">
-                            Copy Link
+                    <button onclick="handleShare()"
+                        class="w-full bg-yellow-500/10 hover:bg-yellow-500/20 border border-yellow-500/30
+                            text-yellow-400 py-3 rounded-xl font-bold text-sm transition">
+                        <i class="fa-solid fa-share-nodes"></i>
+                        Share listing
+                    </button>
+                    @if($listing->share_count > 0)
+                        <div class="text-xs text-gray-500 text-center mt-2">
+                            🔥 {{ $listing->share_count }} shares
+                        </div>
+                    @endif
+
+                </div>
+                <div id="shareModal"
+                    onclick="closeShareModal()"
+                    class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+
+                    <div
+                        onclick="event.stopPropagation()"
+                        class="bg-gray-900 p-5 rounded-xl w-80"
+                    >
+                        <h3 class="font-bold mb-4">
+                            Share this {{ $listing->type === 'auction' ? 'auction' : 'listing' }}
+                        </h3>
+                        <div class="flex flex-col gap-2">
+
+                            <button onclick="shareTo('whatsapp')"
+                                class="bg-green-500/10 text-green-400 py-2 rounded">
+                                WhatsApp
+                            </button>
+
+                            <button onclick="shareTo('telegram')"
+                                class="bg-sky-500/10 text-sky-400 py-2 rounded">
+                                Telegram
+                            </button>
+
+                            <button onclick="shareTo('facebook')"
+                                class="bg-blue-500/10 text-blue-400 py-2 rounded">
+                                Facebook
+                            </button>
+
+                            <button onclick="shareTo('twitter')"
+                                class="bg-gray-700 text-gray-300 py-2 rounded">
+                                X (Twitter)
+                            </button>
+
+                            <button onclick="shareTo('copy')"
+                                class="bg-yellow-500/10 text-yellow-400 py-2 rounded">
+                                Copy Link
+                            </button>
+
+                        </div>
+
+                        <button onclick="closeShareModal()"
+                            class="mt-4 text-xs text-gray-400">
+                            Close
                         </button>
+
                     </div>
                 </div>
 
@@ -466,3 +500,77 @@
 
 </div>
 @endsection
+
+@push('scripts')
+<script>
+
+document.addEventListener('keydown', function(e) {
+    if (e.key === "Escape") closeShareModal();
+});
+
+function openShareModal() {
+    document.getElementById('shareModal').classList.remove('hidden');
+}
+
+function handleShare() {
+
+    const url = "{{ url()->current() }}";
+    const title = "{{ $listing->title }}";
+    const price = "{{ number_format($listing->price, 2) }}";
+
+    const text = "{{ $listing->type }}" === 'auction'
+        ? `🏆 Auction: ${title} — starting $${price}`
+        : `🎮 Account for sale: ${title} — $${price}`;
+
+    if (navigator.share) {
+        navigator.share({
+            title: title,
+            text: text,
+            url: url
+        }).then(() => {
+            // ✅ track native share too
+            fetch("{{ route('listings.share', $listing) }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({ platform: "native" })
+            });
+        }).catch(console.error);
+
+    } else {
+        openShareModal();
+    }
+}
+
+function closeShareModal() {
+    document.getElementById('shareModal').classList.add('hidden');
+}
+
+function shareTo(platform) {
+    fetch("{{ route('listings.share', $listing) }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({ platform })
+    })
+    .then(res => res.json())
+    .then(data => {
+
+        if (platform === 'copy') {
+            navigator.clipboard.writeText(data.url);
+            console.log("✅ Link copied!");
+            closeShareModal();
+            return;
+        }
+
+        window.open(data.url, "_blank");
+        closeShareModal(); // ✅ close after click
+    });
+}
+
+</script>
+@endpush

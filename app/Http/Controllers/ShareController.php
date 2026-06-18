@@ -9,7 +9,7 @@ class ShareController extends Controller
 {
     public function share(Request $request, Listing $listing){
         $request->validate([
-            'platform'=> 'required|in:whatsapp,telegram,twitter,copy',
+            'platform'=> 'required|in:whatsapp,telegram,facebook,twitter,copy',
         ]);
 
         // Increment share count
@@ -17,7 +17,7 @@ class ShareController extends Controller
 
         $url = route($listing->isAuction() ? 'auctions.show' : 'listings.show', $listing);
         $title = $listing->title;
-        $message = "Check out this game account: {title} - \${$listing->price}\n{$url}";
+        $message = "🏆 {$listing->title}\n💰 \$" . number_format($listing->price, 2) . "\n🔗 {$url}";
 
         $shareUrl = match($request->platform) {
             'whatsapp' => 'https://wa.me/?text=' . urlencode($message),

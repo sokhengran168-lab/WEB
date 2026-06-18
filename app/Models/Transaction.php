@@ -10,7 +10,19 @@ class Transaction extends Model
     const STATUS_PAID      = 'paid';
     const STATUS_ESCROW    = 'escrow';
     const STATUS_COMPLETED = 'completed';
+    const STATUS_CANCELLED = 'cancelled';
+    const STATUS_DISPUTED  = 'disputed';
     const STATUS_REFUNDED  = 'refunded';
+
+    public const ALL_STATUSES = [
+        self::STATUS_PENDING,
+        self::STATUS_PAID,
+        self::STATUS_ESCROW,
+        self::STATUS_COMPLETED,
+        self::STATUS_CANCELLED,
+        self::STATUS_DISPUTED,
+        self::STATUS_REFUNDED,
+    ];
 
     protected $fillable = [
         'transaction_code',

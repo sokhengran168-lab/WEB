@@ -13,13 +13,13 @@ class TransactionController extends Controller
         private EscrowService $escrowService,
     ) {}
 
-    // Show all transactions
     public function index(Request $request)
     {
         $transactions = Transaction::with(['listing', 'buyer', 'seller'])
-            ->when($request->status,
-                fn($q) => $q->where('status', $request->status),
-                fn($q) => $q->where('status', 'paid') // default show pending payments
+            ->when(
+                $request->status,
+                fn ($q) => $q->where('status', $request->status),
+                fn ($q) => $q->where('status', Transaction::STATUS_PAID)
             )
             ->latest()
             ->paginate(15);
@@ -27,47 +27,57 @@ class TransactionController extends Controller
         return view('admin.transactions.index', compact('transactions'));
     }
 
-    // Admin confirms payment received -> activates releaseEscrow
     public function confirmPayment(Transaction $transaction)
     {
-        if ($transaction->status !== 'paid') {
+        if ($transaction->status !== Transaction::STATUS_PAID) {
             return back()->with('error', 'This transaction is not awaiting payment confirmation.');
         }
 
-        // Activate escrow
         $this->escrowService->hold($transaction);
 
         $transaction->update([
             'admin_confirmed_at' => now(),
-            'review_deadline' => now()->addHours(48),
         ]);
 
-        return back()->with('success', 'Payment confirmed. Escrow activated. Seller notified.');
+        return back()->with('success', 'Payment confirmed. Escrow activated.');
     }
 
-    // Admin releases escrow to seller (dispute resolved)
     public function releaseEscrow(Transaction $transaction)
     {
-        if (!in_array($transaction->status, ['escrow', 'disputed'])) {
+        if ($transaction->status === Transaction::STATUS_COMPLETED) {
+                return back()->with('info', 'This transaction is already completed.');
+        }
+
+        if (!in_array($transaction->status, [
+            Transaction::STATUS_ESCROW,
+            Transaction::STATUS_DISPUTED
+        ])) {
             return back()->with('error', 'Cannot release this transaction.');
         }
 
         $this->escrowService->release($transaction, 'admin');
 
-        return back()->with('success', 'Escrow released. Seller has been paid.');
+        return back()->with('success', 'Escrow released. Seller paid.');
     }
 
-    // Admin refunds buyer
-    public function refund(Transaction $transaction) {
-        if ($transaction->status !== 'disputed') {
+    public function refund(Transaction $transaction)
+    {
+
+        if ($transaction->status === Transaction::STATUS_REFUNDED) {
+            return back()->with('info', 'This transaction has already been refunded.');
+        }
+
+        if ($transaction->status !== Transaction::STATUS_DISPUTED) {
             return back()->with('error', 'Can only refund disputed transactions.');
         }
 
         $this->escrowService->refund($transaction);
 
-        // Release listing back to active
-        $transaction->listing->update(['status' => 'active']);
+        $transaction->listing->update([
+            'status' => 'active'
+        ]);
 
         return back()->with('success','Buyer refunded successfully.');
     }
 }
+

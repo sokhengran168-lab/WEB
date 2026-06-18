@@ -126,7 +126,7 @@ class ListingController extends Controller
             'name'    => $game->name,
             'ranks'   => $game->rank_options ?? [],
             'servers' => $game->server_options ?? [],
-        ]);
+        ])->values(); // ← add this
 
         if (!Auth::user()->hasCompletedOnboarding()) {
             session()->flash('warning', 'Complete seller onboarding to publish, or continue to create a draft.');
@@ -238,17 +238,15 @@ class ListingController extends Controller
             return view('auctions.edit', compact('listing', 'games'));
         }
 
-        $gamesData = $games->map(function ($game) {
-            return [
-                'id' => $game->id,
-                'ranks' => $game->ranks ?? [],
-                'servers' => $game->servers ?? [],
-            ];
-        })->values(); // important!
+        $gamesData = $games->map(fn($game) => [
+            'id'      => $game->id,
+            'name'    => $game->name,
+            'ranks'   => $game->rank_options   ?? [],
+            'servers' => $game->server_options ?? [],
+        ])->values();
 
         return view('listings.edit', compact('listing', 'games', 'gamesData'));
     }
-
     // ── Update ────────────────────────────────────────────────────────────
     public function update(Request $request, Listing $listing)
     {
@@ -391,12 +389,26 @@ class ListingController extends Controller
 
     public function liveSearch(Request $request)
     {
-        $search = $request->search;
+        $search = trim($request->search);
 
+        //  Fix: check AFTER assigning
+        // if (!$search) {
+        //     return response()->json([]);
+        // }
+
+        if (!$search || strlen($search) < 2) {
+            return response()->json([]);
+        }
         $listings = Listing::with('firstImage')
             ->where('status', 'active')
             ->where(function ($q) use ($search) {
+
                 $q->where('title', 'like', "%{$search}%")
+                ->orWhereHas('game', function ($q) use ($search) {
+                    $q->where('name', 'like', "%{$search}%");
+                })
+
+                // Optional extra filters
                 ->orWhere('rank', 'like', "%{$search}%")
                 ->orWhere('platform', 'like', "%{$search}%");
             })

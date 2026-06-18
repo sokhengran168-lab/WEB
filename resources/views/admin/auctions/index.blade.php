@@ -3,20 +3,33 @@
 
 @section('content')
 
-    <div class="flex items-center justify-between mb-5">
-        <h1 class="text-2xl font-bold">🏆 Manage Auctions</h1>
-        <div class="flex gap-2">
-            @foreach(['pending' => '⏳ Pending', 'active' => '✅ Live', 'inactive' => '🏁 Ended', 'rejected' => '❌ Rejected'] as $status => $label)
-            <a href="{{ route('admin.auctions.index', ['status' => $status]) }}"
-               class="px-3 py-1.5 rounded-lg text-xs font-semibold transition
-                      {{ request('status', 'pending') === $status
-                         ? 'bg-sky-600 text-white'
-                         : 'bg-gray-800 text-gray-400 hover:text-white' }}">
-                {{ $label }}
-            </a>
-            @endforeach
-        </div>
+<div class="flex items-center justify-between mb-5">
+    <h1 class="text-2xl font-bold">Manage Auctions</h1>
+
+    <div class="flex gap-2">
+
+        @foreach([
+            'pending'  => ['icon' => 'fa-clock', 'label' => 'Pending'],
+            'active'   => ['icon' => 'fa-bolt', 'label' => 'Live'],
+            'inactive' => ['icon' => 'fa-flag-checkered', 'label' => 'Ended'],
+            'rejected' => ['icon' => 'fa-xmark', 'label' => 'Rejected'],
+        ] as $status => $item)
+
+        <a href="{{ route('admin.auctions.index', ['status' => $status]) }}"
+           class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition
+                  {{ request('status', 'pending') === $status
+                     ? 'bg-sky-600 text-white'
+                     : 'bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700' }}">
+
+            <i class="fa-solid {{ $item['icon'] }} text-[11px]"></i>
+            <span>{{ $item['label'] }}</span>
+
+        </a>
+
+        @endforeach
+
     </div>
+</div>
 
     <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden">
         <table class="w-full">

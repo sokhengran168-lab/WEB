@@ -43,18 +43,12 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-400 mb-2">Rank / Tier</label>
-<select name="rank"
-        x-model="selectedRank"
-        :disabled="ranks.length === 0"
-        class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-5 py-3.5 text-white">
-
-    <option value="" disabled hidden>Select rank</option>
-
-    <template x-for="rank in ranks" :key="rank">
-        <option :value="rank" x-text="rank"></option>
-    </template>
-</select>
-
+                <select name="rank"
+                        x-model="selectedRank"
+                        :disabled="ranks.length === 0"
+                        x-html="rankOptions"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-indigo-500 transition disabled:opacity-40">
+                </select>
             </div>
 
             <div>
@@ -68,17 +62,12 @@
 
             <div>
                 <label class="block text-sm font-medium text-gray-400 mb-2">Server</label>
-<select name="server"
-        x-model="selectedServer"
-        :disabled="servers.length === 0"
-        class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-5 py-3.5 text-white">
-
-    <option value="" disabled hidden>Select server</option>
-
-    <template x-for="server in servers" :key="server">
-        <option :value="server" x-text="server"></option>
-    </template>
-</select>
+                <select name="server"
+                        x-model="selectedServer"
+                        :disabled="servers.length === 0"
+                        x-html="serverOptions"
+                        class="w-full bg-gray-800 border border-gray-700 rounded-2xl px-5 py-3.5 text-white focus:outline-none focus:border-indigo-500 transition disabled:opacity-40">
+                </select>
             </div>
 
             <div>

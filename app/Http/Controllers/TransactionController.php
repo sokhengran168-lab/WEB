@@ -50,7 +50,13 @@ class TransactionController extends Controller
 
         $listing = Listing::findOrFail($request->listing_id);
 
-        if ($listing->status !== 'active') {
+        // Allow if it's already reserved by this buyer
+        $existing = Transaction::where('listing_id', $listing->id)
+            ->where('buyer_id', Auth::id())
+            ->whereIn('status', ['pending', 'paid', 'escrow'])
+            ->first();
+
+        if ($listing->status !== 'active' && !$existing) {
             return back()->with('error', 'This listing is no longer available.');
         }
 
@@ -95,9 +101,11 @@ class TransactionController extends Controller
         // dd($transaction);
 
         // Reserve listing so nobody else can buy it
-        $listing->update(['status' => 'reserved']);
+        // $listing->update(['status' => 'reserved']);
 
-        return redirect()->route('transactions.payment', $transaction);
+        return redirect()
+            ->route('transactions.payment', $transaction)
+            ->with('success', 'Proceed to payment to secure this listing.');
     }
 
     // ── Step 2: Checkout summary page (payment method selection) ─────────────
@@ -133,8 +141,11 @@ class TransactionController extends Controller
     {
         if ($transaction->buyer_id !== Auth::id()) abort(403);
 
-        if ($transaction->status !== 'pending') {
-            return redirect()->route('transactions.show', $transaction);
+        // ✅ Check if already taken BEFORE payment success
+        if ($transaction->listing->status !== 'active') {
+            return redirect()
+                ->route('transactions.show', $transaction)
+                ->with('error', '❌ This listing was already purchased by another buyer.');
         }
 
         $request->validate([
@@ -156,6 +167,11 @@ class TransactionController extends Controller
             'payment_note'   => 'Paid by card ending ' . $last4,
         ]);
 
+        // ✅ Reserve listing here (NOT in store)
+        $transaction->listing->update([
+            'status' => 'reserved'
+        ]);
+
         return redirect()
             ->route('transactions.show', $transaction)
             ->with('success', '🎉 Payment successful! Funds held in escrow. Contact the seller now!');
@@ -170,7 +186,9 @@ class TransactionController extends Controller
             return back()->with('error', 'This transaction cannot be confirmed.');
         }
 
+
         $this->escrowService->release($transaction, 'buyer');
+        
 
         return redirect()
             ->route('transactions.show', $transaction)

@@ -14,7 +14,7 @@
                 {{ now()->format('l, F j Y') }}
             </p>
         </div>
-        <div class="relative" x-data="{ open: false }">
+        {{-- <div class="relative" x-data="{ open: false }">
             <button @click="open = !open"
                     class="flex items-center gap-1 px-4 py-2 bg-indigo-600
                            hover:bg-indigo-500 text-white text-sm font-semibold
@@ -35,7 +35,7 @@
                     Auction
                 </a>
             </div>
-        </div>
+        </div> --}}
     </div>
     {{-- Won auctions alert --}}
     @php
@@ -98,19 +98,43 @@
                         + auth()->user()->sales()->where('status', 'disputed')->count();
     @endphp
 
-    <div class="grid grid-cols-4 gap-4 mb-6">
-        {{-- <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+
+        {{-- ✅ Balance Card --}}
+        <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">
-                Wallet Balance
+                Available Balance
             </div>
-            <div class="text-2xl font-bold text-yellow-400">
-                ${{ number_format(auth()->user()->wallet_balance, 2) }}
+
+            <div class="text-2xl font-bold text-green-400">
+                <span>💰</span>
+                <span class="text-2xl font-bold text-green-400">
+                    ${{ number_format(auth()->user()->wallet_balance, 2) }}
+                </span>
             </div>
-            <a href="{{ route('wallet.index') }}"
-               class="text-xs text-gray-500 hover:text-indigo-400 transition">
-                Top up
-            </a>
-        </div> --}}
+
+            <div class="text-xs text-gray-500 mb-2">
+                Available for withdrawal
+            </div>
+
+            @if(auth()->user()->wallet_balance > 0)
+                <div class="text-xs text-green-400 mb-2">
+                    Ready to withdraw ✅
+                </div>
+
+                <a href="{{ route('wallet.index') }}"
+                class="mt-2 inline-block bg-indigo-600 hover:bg-indigo-500
+                        text-white text-xs px-3 py-1.5 rounded">
+                    Withdraw →
+                </a>
+            @else
+                <div class="text-xs text-gray-500">
+                    No earnings yet
+                </div>
+            @endif
+        </div>
+
+        {{-- ✅ Total Earned --}}
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 Total Earned
@@ -122,6 +146,8 @@
                 from {{ $totalSales }} sales
             </div>
         </div>
+
+        {{-- ✅ Total Spent --}}
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 Total Spent
@@ -133,22 +159,25 @@
                 {{ auth()->user()->purchases()->count() }} orders
             </div>
         </div>
+
+        {{-- ✅ Rating --}}
         <div class="bg-gray-900 border border-gray-800 rounded-xl p-4">
             <div class="text-xs text-gray-500 uppercase tracking-wider mb-1">
                 My Rating
             </div>
-            @if(auth()->user()->rating_avg > 0)
-            <div class="text-2xl font-bold text-yellow-400">
-                {{ number_format(auth()->user()->rating_avg, 1) }}
-            </div>
-            <div class="text-xs text-gray-500">
-                from {{ auth()->user()->reviews()->count() }} reviews
-            </div>
+            @if(auth()->user()->rating_avg > 0.01)
+                <div class="text-2xl font-bold text-yellow-400">
+                    {{ number_format(auth()->user()->rating_avg, 1) }}
+                </div>
+                <div class="text-xs text-gray-500">
+                    from {{ auth()->user()->reviews()->count() }} reviews
+                </div>
             @else
-            <div class="text-2xl font-bold text-gray-600">—</div>
-            <div class="text-xs text-gray-500">No reviews yet</div>
+                <div class="text-2xl font-bold text-gray-600">—</div>
+                <div class="text-xs text-gray-500">No reviews yet</div>
             @endif
         </div>
+
     </div>
 
     {{-- Listing status summary --}}
