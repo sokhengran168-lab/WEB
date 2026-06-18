@@ -12,7 +12,9 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     libzip-dev \
-    libpq-dev
+    libpq-dev \
+    nodejs \
+    npm
 
 # Install PHP extensions
 RUN docker-php-ext-install \
@@ -36,8 +38,11 @@ RUN cp .env.example .env || true
 
 ENV COMPOSER_MEMORY_LIMIT=-1
 
-# Install dependencies
+# Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Install Node dependencies and build frontend assets
+RUN npm install && npm run build
 
 # Set permissions
 RUN chown -R www-data:www-data storage bootstrap/cache
