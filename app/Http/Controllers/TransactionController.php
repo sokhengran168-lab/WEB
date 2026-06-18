@@ -85,7 +85,7 @@ class TransactionController extends Controller
             'payment_method'   => 'card',
             'status'           => 'pending',
 
-            // ✅ dynamic from config
+            //  dynamic from config
             'bank_name'            => config('payment.bank_name'),
             'bank_account_name'    => config('payment.bank_account_name'),
             'bank_account_number'  => config('payment.bank_account_number'),

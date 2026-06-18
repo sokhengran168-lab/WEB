@@ -76,12 +76,12 @@ class AuctionController extends Controller
     })
 
     ->when(!$request->status, function ($q) {
-        // ✅ default = active
+        //  default = active
         $q->where('status', 'active')
           ->where('auction_ends_at', '>', now());
     })
 
-    // ✅ show user's own pending/rejected (optional)
+    //  show user's own pending/rejected (optional)
     ->when(Auth::check(), function ($q) {
         $q->orWhere(function ($sub) {
             $sub->where('user_id', Auth::id())
@@ -101,7 +101,7 @@ class AuctionController extends Controller
             ->paginate(12)
             ->withQueryString();
 
-        // ✅ Pass stats to view
+        //  Pass stats to view
         return view('auctions.index', compact(
             'listings',
             'games',
@@ -109,7 +109,7 @@ class AuctionController extends Controller
             'liveAuctions',
             'auctionCount',
 
-            // ✅ ADD THESE
+            // ADD THESE
             'totalListings',
             'totalSales',
             'totalSellers'

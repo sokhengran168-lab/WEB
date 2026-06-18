@@ -27,7 +27,7 @@ class ListingController extends Controller
     public function index(Request $request)
     {
 
-        // ✅ Add stats HERE
+        // Add stats HERE
         $totalListings = Listing::where('status', 'active')->count();
         $totalSales    = Transaction::where('status', 'completed')->count();
         $totalSellers  = User::where('total_sales', '>', 0)->count();
@@ -43,7 +43,7 @@ class ListingController extends Controller
             ->where('type', 'fixed')
             ->where('is_featured', true)
             ->latest()
-            ->take(3)
+            ->take(6)
             ->get();
 
         $liveAuctions = Listing::with(['game', 'seller', 'firstImage', 'highestBidder'])
@@ -369,17 +369,40 @@ class ListingController extends Controller
      * Delete one image from Cloudinary (if configured) or local disk.
      * Accepts the value stored in image_path.
      */
+
     private function deleteImage(string $imagePath): void
     {
-        if (str_starts_with($imagePath, 'http') && config('filesystems.disks.cloudinary.url')) {
-            // Extract Cloudinary public_id from the secure URL
-            // e.g. https://res.cloudinary.com/demo/image/upload/v123/gametradehub/listings/5/abc.jpg
-            //   → public_id = gametradehub/listings/5/abc
-            if (preg_match('/upload\/(?:v\d+\/)?(.+?)(?:\.\w+)?$/', $imagePath, $matches)) {
-                cloudinary()->uploadApi()->destroy($matches[1]);
+        if (str_starts_with($imagePath, 'http')) {
+
+            if (preg_match('/upload\/(?:v\d+\/)?(.+)\.\w+$/', $imagePath, $matches)) {
+                try {
+                    cloudinary()->uploadApi()->destroy($matches[1]);
+                } catch (\Exception $e) {
+                    \Log::error('Cloudinary delete failed: ' . $e->getMessage());
+                }
+            } else {
+                \Log::warning('Cloudinary public_id not extracted: ' . $imagePath);
             }
+
         } else {
             Storage::disk('public')->delete($imagePath);
         }
+    }
+
+    public function liveSearch(Request $request)
+    {
+        $search = $request->search;
+
+        $listings = Listing::with('firstImage')
+            ->where('status', 'active')
+            ->where(function ($q) use ($search) {
+                $q->where('title', 'like', "%{$search}%")
+                ->orWhere('rank', 'like', "%{$search}%")
+                ->orWhere('platform', 'like', "%{$search}%");
+            })
+            ->limit(6)
+            ->get();
+
+        return response()->json($listings);
     }
 }

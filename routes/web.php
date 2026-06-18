@@ -68,6 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         ->name('listings.update');
     Route::delete('/listings/{listing}', [ListingController::class, 'destroy'])
         ->name('listings.destroy');
+    Route::get('/live-search', [ListingController::class, 'liveSearch']);
 
     // Reports
     Route::get('/listings/{listing}/report', [ReportController::class, 'create'])

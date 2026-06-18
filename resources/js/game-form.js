@@ -14,52 +14,60 @@ export function registerGameForm(Alpine) {
         ranks:   [],
         servers: [],
 
-        init() {
-            // Read games from the JSON script tag — 100% safe, no encoding issues
-            const scriptTag = document.getElementById('games-data');
-            if (scriptTag) {
-                this.games = JSON.parse(scriptTag.textContent);
-            }
+init() {
+    const scriptTag = document.getElementById('games-data');
+    if (scriptTag) {
+        this.games = JSON.parse(scriptTag.textContent);
+    }
 
-            // old() values still come from data attributes (simple strings, always safe)
-            const el = this.$el.closest('[data-old-game]');
-            if (el) {
-                this.selectedGame   = el.dataset.oldGame   || '';
-                this.selectedRank   = el.dataset.oldRank   || '';
-                this.selectedServer = el.dataset.oldServer || '';
-            }
+    const el = this.$el;
 
-            this.updateOptions();
-        },
+    // STEP 1: get old values
+    const oldGame   = el.dataset.oldGame   || '';
+    const oldRank   = el.dataset.oldRank   || '';
+    const oldServer = el.dataset.oldServer || '';
 
-        updateOptions(reset = false) {
-            const game = this.games.find(g => g.id == this.selectedGame);
+    // STEP 2: set game first
+    this.selectedGame = oldGame;
 
-            this.ranks   = game ? game.ranks   : [];
-            this.servers = game ? game.servers : [];
+    // STEP 3: load options
+    this.updateOptions();
 
-            if (reset) {
-                this.selectedRank   = '';
-                this.selectedServer = this.servers.length > 0 ? this.servers[0] : '';
-            }
-        },
+    // STEP 4: wait for DOM + options, then restore values
+    this.$nextTick(() => {
+        this.selectedRank   = this.ranks.find(r => r == oldRank) || '';
+        this.selectedServer = this.servers.find(s => s == oldServer) || '';
+    });
+},
 
-        get rankOptions() {
-            let html = `<option value="" ${!this.selectedRank ? 'selected' : ''} hidden>Select rank</option>`;
-            this.ranks.forEach(rank => {
-                const sel = rank == this.selectedRank ? 'selected' : '';
-                html += `<option value="${rank}" ${sel}>${rank}</option>`;
-            });
-            return html;
-        },
+updateOptions(reset = false) {
+    const game = this.games.find(g => g.id == this.selectedGame);
 
-        get serverOptions() {
-            let html = `<option value="" ${!this.selectedServer ? 'selected' : ''} hidden>Select server</option>`;
-            this.servers.forEach(server => {
-                const sel = server == this.selectedServer ? 'selected' : '';
-                html += `<option value="${server}" ${sel}>${server}</option>`;
-            });
-            return html;
-        },
+    this.ranks   = game ? game.ranks   : [];
+    this.servers = game ? game.servers : [];
+
+    if (reset) {
+        this.selectedRank   = '';
+        this.selectedServer = '';
+    }
+}
+
+        // get rankOptions() {
+        //     let html = `<option value="" ${!this.selectedRank ? 'selected' : ''} hidden>Select rank</option>`;
+        //     this.ranks.forEach(rank => {
+        //         const sel = rank == this.selectedRank ? 'selected' : '';
+        //         html += `<option value="${rank}" ${sel}>${rank}</option>`;
+        //     });
+        //     return html;
+        // },
+
+        // get serverOptions() {
+        //     let html = `<option value="" ${!this.selectedServer ? 'selected' : ''} hidden>Select server</option>`;
+        //     this.servers.forEach(server => {
+        //         const sel = server == this.selectedServer ? 'selected' : '';
+        //         html += `<option value="${server}" ${sel}>${server}</option>`;
+        //     });
+        //     return html;
+        // },
     }));
 }
