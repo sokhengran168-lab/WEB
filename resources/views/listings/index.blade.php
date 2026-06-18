@@ -66,13 +66,6 @@
                     SEARCH
                 </button>
             </form>
-
-            {{-- Stats --}}
-            {{-- @php
-                {{ number_format($totalListings) }}
-                {{ number_format($totalSales) }}
-                {{ number_format($totalSellers) }}
-            @endphp --}}
             <div class="flex items-center justify-center gap-6 text-sm">
                 <div class="text-center">
                     <div class="font-game font-bold text-indigo-400 text-lg">{{ number_format($totalListings) }}+</div>

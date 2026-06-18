@@ -76,7 +76,7 @@ class ListingController extends Controller
             ->latest()
             ->paginate(12)
             ->withQueryString();
-            
+
         if (request()->ajax()) {
             return view('partials.listings-grid', compact('listings'));
         }
@@ -93,7 +93,7 @@ class ListingController extends Controller
     // ── Show ──────────────────────────────────────────────────────────────
     public function show(Listing $listing)
     {
-        if ($listing->status !== 'active' && (!Auth::check() || Auth::id() !== $listing->user_id)) {
+        if ($listing->status === 'rejected') {
             abort(404);
         }
 
