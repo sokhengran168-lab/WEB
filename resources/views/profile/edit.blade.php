@@ -24,7 +24,7 @@
         @endif
     </div>
 
-    <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
+    <form id="profileForm" method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
         @csrf
         @method('PATCH')
 
@@ -283,9 +283,9 @@
 
         <div class="flex justify-end mb-4">
             <button type="submit"
-                onclick="this.disabled=true; this.innerHTML='Saving...'; this.form.submit();"
                 class="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white
-                    px-6 py-2.5 rounded-xl font-semibold text-sm transition shadow">
+                px-6 py-2.5 rounded-xl font-semibold text-sm transition shadow"
+                id="saveBtn">
 
                 <i class="fa-solid fa-floppy-disk text-xs"></i>
                 <span>Save Profile</span>
@@ -296,59 +296,116 @@
     </form>
 
     {{-- Change Password --}}
-    <div class="bg-gray-900 border border-gray-800 rounded-xl p-5 mb-4">
-        <div class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-4">
+    <div class="bg-gray-900 border border-gray-800 rounded-2xl p-6 shadow-sm">
+
+        <h2 class="text-sm font-bold text-gray-400 uppercase tracking-wider mb-5">
             Change Password
+        </h2>
+
+        <form method="POST" action="{{ route('profile.password') }}" class="space-y-5">
+    @csrf
+    @method('PATCH')
+
+    {{-- Current Password --}}
+    <div>
+        <label for="current_password" class="block text-xs font-semibold text-gray-400 mb-1.5">
+            Current Password
+        </label>
+
+        <div class="relative">
+            <input
+                id="current_password"
+                type="password"
+                name="current_password"
+                autocomplete="current-password"
+                required
+                class="w-full bg-gray-800 border rounded-xl px-3 py-2.5 pr-10 text-sm text-white
+                       focus:outline-none focus:ring-2 focus:ring-indigo-500 transition
+                       @error('current_password') border-red-500 @else border-gray-700 @enderror">
+
+            <span class="absolute right-3 top-2.5 text-gray-500 text-xs">🔒</span>
         </div>
-        <form method="POST" action="{{ route('profile.password') }}">
-            @csrf
-            @method('PATCH')
-            <div class="flex flex-col gap-3">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-400 mb-1.5">
-                        Current Password
-                    </label>
-                    <input type="password" name="current_password"
-                           class="w-full bg-gray-800 border border-gray-700 rounded-xl
-                                  px-3 py-2.5 text-sm text-white
-                                  focus:outline-none focus:border-indigo-500">
-                    @error('current_password')
-                    <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                    @enderror
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1.5">
-                            New Password
-                        </label>
-                        <input type="password" name="password"
-                               class="w-full bg-gray-800 border border-gray-700 rounded-xl
-                                      px-3 py-2.5 text-sm text-white
-                                      focus:outline-none focus:border-indigo-500">
-                        @error('password')
-                        <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
-                        @enderror
-                    </div>
-                    <div>
-                        <label class="block text-xs font-semibold text-gray-400 mb-1.5">
-                            Confirm Password
-                        </label>
-                        <input type="password" name="password_confirmation"
-                               class="w-full bg-gray-800 border border-gray-700 rounded-xl
-                                      px-3 py-2.5 text-sm text-white
-                                      focus:outline-none focus:border-indigo-500">
-                    </div>
-                </div>
-                <div class="flex justify-end">
-                    <button type="submit"
-                            class="bg-gray-700 hover:bg-gray-600 text-white
-                                   px-5 py-2 rounded-xl text-sm font-semibold transition">
-                        Change Password
-                    </button>
-                </div>
-            </div>
-        </form>
+
+        @error('current_password')
+            <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+        @enderror
     </div>
+
+    {{-- Password Fields --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        {{-- New Password --}}
+        <div>
+            <label for="password" class="block text-xs font-semibold text-gray-400 mb-1.5">
+                New Password
+            </label>
+
+            <div class="relative">
+                <input
+                    id="password"
+                    type="password"
+                    name="password"
+                    autocomplete="new-password"
+                    required
+                    class="w-full bg-gray-800 border rounded-xl px-3 py-2.5 pr-10 text-sm text-white
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500 transition
+                           @error('password') border-red-500 @else border-gray-700 @enderror">
+
+                <button type="button"
+                        onclick="togglePassword('password', this)"
+                        class="absolute right-3 top-2.5 text-gray-400 hover:text-white text-xs">
+                    👁
+                </button>
+            </div>
+
+            {{-- Optional strength indicator --}}
+            <div id="passwordStrength" class="text-xs mt-1 text-gray-500"></div>
+
+            @error('password')
+                <p class="text-red-400 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Confirm Password --}}
+        <div>
+            <label for="password_confirmation" class="block text-xs font-semibold text-gray-400 mb-1.5">
+                Confirm Password
+            </label>
+
+            <div class="relative">
+                <input
+                    id="password_confirmation"
+                    type="password"
+                    name="password_confirmation"
+                    required
+                    class="w-full bg-gray-800 border border-gray-700 rounded-xl
+                           px-3 py-2.5 pr-10 text-sm text-white
+                           focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+
+                <button type="button"
+                        onclick="togglePassword('password_confirmation', this)"
+                        class="absolute right-3 top-2.5 text-gray-400 hover:text-white text-xs">
+                    👁
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    {{-- Submit --}}
+    <div class="flex justify-end">
+        <button type="submit"
+            class="inline-flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500
+                   text-white px-5 py-2.5 rounded-xl text-sm font-semibold
+                   transition shadow-md hover:shadow-lg"
+            id="passwordBtn">
+
+            🔄 <span>Change Password</span>
+        </button>
+    </div>
+</form>
+    </div>
+
 
     {{-- Danger Zone --}}
     <div class="bg-red-500/5 border border-red-500/20 rounded-xl p-5"
@@ -394,27 +451,56 @@
 </div>
 @endsection
 
+@push('scripts')
 <script>
-function previewAvatar(event) {
-    const reader = new FileReader();
-    reader.onload = function () {
-        document.getElementById('avatarPreview').src = reader.result;
-    };
-    reader.readAsDataURL(event.target.files[0]);
+    document.addEventListener('DOMContentLoaded', function () {
+        const form = document.getElementById('profileForm');
+        if (form) {
+            form.addEventListener('submit', function () {
+                const btn = document.getElementById('saveBtn');
+                if (btn) {
+                    btn.disabled = true;
+                    btn.innerHTML = 'Saving...';
+                }
+            });
+        }
+    });
 
-    document.getElementById('removeAvatarInput').value = 0;
-}
+    function previewAvatar(event) {
+        const reader = new FileReader();
+        reader.onload = function () {
+            document.getElementById('avatarPreview').src = reader.result;
+        };
+        reader.readAsDataURL(event.target.files[0]);
 
-function removeAvatar() {
-    const defaultAvatar = @json(
-        $user->avatar
-            ? $user->avatar
-            : 'https://ui-avatars.com/api/?name=' . urlencode($user->name) . '&color=fff&background=6366f1'
-    );
+        document.getElementById('removeAvatarInput').value = 0;
+    }
 
-    document.getElementById('avatarPreview').src = defaultAvatar;
+    function togglePassword(id, btn) {
+        const input = document.getElementById(id);
+        const isHidden = input.type === "password";
+        input.type = isHidden ? "text" : "password";
+        btn.innerText = isHidden ? "🙈" : "👁";
+    }
 
-    document.getElementById('avatarInput').value = "";
-    document.getElementById('removeAvatarInput').value = 1;
-}
+
+
+
+    function removeAvatar() {
+        const defaultAvatar = @json(
+            "https://ui-avatars.com/api/?name=" . urlencode($user->name) . "&color=fff&background=6366f1"
+        );
+
+        document.getElementById('avatarPreview').src = defaultAvatar;
+        document.getElementById('avatarInput').value = "";
+        document.getElementById('removeAvatarInput').value = 1;
+    }
+
+    document.getElementById('profileForm')
+    .addEventListener('submit', function () {
+        const btn = document.getElementById('saveBtn');
+        btn.disabled = true;
+        btn.innerHTML = 'Saving...';
+    });
 </script>
+@endpush
