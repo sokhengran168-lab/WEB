@@ -403,7 +403,12 @@ document.addEventListener('DOMContentLoaded', () => {
             filterForm.appendChild(h);
         }
         loadListings();
-        document.getElementById('browse').scrollIntoView({ behavior: 'smooth' });
+        // document.getElementById('browse').scrollIntoView({ behavior: 'smooth' });
+        const browse = document.getElementById('browse');
+
+        if (window.scrollY < browse.offsetTop - 100) {
+            browse.scrollIntoView({ behavior: 'smooth' });
+        }
     });
 
     // Live search while typing in hero
@@ -450,9 +455,57 @@ document.addEventListener('DOMContentLoaded', () => {
         clearTimeout(debounce);
         debounce = setTimeout(() => {
             loadListings();
-            document.getElementById('browse').scrollIntoView({ behavior: 'smooth' });
+            // document.getElementById('browse').scrollIntoView({ behavior: 'smooth' });
+
+            const browse = document.getElementById('browse');
+            if (window.scrollY < browse.offsetTop - 100) {
+                browse.scrollIntoView({ behavior: 'smooth' });
+            }
+
         }, 80);
     };
+
+    document.querySelectorAll('[data-filter]').forEach(link => {
+    link.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        const url = new URL(this.href);
+        const params = url.searchParams;
+
+        // Update hidden inputs in filter form
+        let gameInput = filterForm.querySelector('[name="game_id"]');
+
+        if (!gameInput) {
+            gameInput = document.createElement('input');
+            gameInput.type = 'hidden';
+            gameInput.name = 'game_id';
+            filterForm.appendChild(gameInput);
+        }
+
+        gameInput.value = params.get('game_id') || '';
+
+        // also keep search if exists
+        const search = params.get('search');
+        if (search) {
+            let searchInput = filterForm.querySelector('[name="search"]');
+            if (!searchInput) {
+                searchInput = document.createElement('input');
+                searchInput.type = 'hidden';
+                searchInput.name = 'search';
+                filterForm.appendChild(searchInput);
+            }
+            searchInput.value = search;
+        }
+
+        loadListings();
+
+    // const browse = document.getElementById('browse');
+
+    // if (window.scrollY < browse.offsetTop - 100) {
+    //     browse.scrollIntoView({ behavior: 'smooth' });
+    // }
+    });
+});
 });
 </script>
 @endpush
