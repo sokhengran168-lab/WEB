@@ -17,64 +17,58 @@ class ProfileController extends Controller
         $user = auth()->user();
 
         $request->validate([
-            'name'               => 'required|string|max:255',
-            'full_name'          => 'nullable|string|max:255',
-            'username'           => 'required|string|max:255|unique:users,username,' . $user->id,
-            'country'            => 'nullable|string|max:10',
-            'date_of_birth'      => 'nullable|date|before:today',
-            'phone_country_code' => 'nullable|string|max:10',
-            'phone_number'       => 'nullable|string|max:20',
-            'telegram'           => 'nullable|string|max:100',
-            'whatsapp'           => 'nullable|string|max:20',
-            'discord'            => 'nullable|string|max:100',
-            'line_id'            => 'nullable|string|max:100',
-            'avatar'             => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'name'          => 'required|string|max:255',
+            'full_name'     => 'nullable|string|max:255',
+            'username'      => 'required|string|max:255|unique:users,username,' . $user->id,
+            'date_of_birth' => 'nullable|date|before:today',
+            'phone_number'  => 'nullable|string|max:20',
+            'telegram'      => 'nullable|string|max:100',
+            'whatsapp'      => 'nullable|string|max:20',
+            'discord'       => 'nullable|string|max:100',
+            'line_id'       => 'nullable|string|max:100',
+            'avatar'        => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
         ]);
 
-        // Check if profile is completed
-        $profileCompleted = $request->full_name
-            && $request->country
-            && $request->phone_number;
+        // Profile is completed when full name + phone are filled
+        $profileCompleted = !empty($request->full_name) && !empty($request->phone_number);
 
-        //  Always start with old avatar
-        $avatarUrl = $user->avatar; // keep old avatar
+        // Start with existing avatar
+        $avatarUrl = $user->avatar;
 
-        //  Handle remove avatar
+        // Handle remove avatar
         if ($request->input('remove_avatar') == '1') {
             $avatarUrl = null;
         }
 
-        //  Handle new upload (this overrides remove if both happen)
+        // Handle new upload (overrides remove)
         if ($request->hasFile('avatar')) {
             $upload = cloudinary()->uploadApi()->upload(
                 $request->file('avatar')->getRealPath(),
                 [
                     'folder' => 'avatars',
                     'transformation' => [
-                        'width' => 300,
+                        'width'  => 300,
                         'height' => 300,
-                        'crop' => 'fill'
-                    ]
+                        'crop'   => 'fill',
+                    ],
                 ]
             );
-            
+
             $avatarUrl = $upload['secure_url'];
         }
 
         $user->update([
-            'name'               => $request->name,
-            'full_name'          => $request->full_name,
-            'username'           => $request->username,
-            'country'            => $request->country,
-            'date_of_birth'      => $request->date_of_birth,
-            'phone_country_code' => $request->phone_country_code,
-            'phone_number'       => $request->phone_number,
-            'telegram'           => $request->telegram,
-            'whatsapp'           => $request->whatsapp,
-            'discord'            => $request->discord,
-            'line_id'            => $request->line_id,
-            'profile_completed'  => $profileCompleted,
-            'avatar'             => $avatarUrl,
+            'name'              => $request->name,
+            'full_name'         => $request->full_name,
+            'username'          => $request->username,
+            'date_of_birth'     => $request->date_of_birth,
+            'phone_number'      => $request->phone_number,
+            'telegram'          => $request->telegram,
+            'whatsapp'          => $request->whatsapp,
+            'discord'           => $request->discord,
+            'line_id'           => $request->line_id,
+            'profile_completed' => $profileCompleted,
+            'avatar'            => $avatarUrl,
         ]);
 
         return back()->with('success', 'Profile updated successfully.');
