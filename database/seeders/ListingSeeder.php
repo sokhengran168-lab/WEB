@@ -62,7 +62,7 @@ class ListingSeeder extends Seeder
                 'is_featured' => false,
             ],
             [
-                'game_id'     => $mlbb->id,
+                'game_id'     => $mlbb->id, 
                 'title'       => 'Legend Account | 80 Skins | Clean',
                 'price'       => 55.00,
                 'rank'        => 'Legend',
