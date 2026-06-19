@@ -185,9 +185,9 @@
 </div>
 
 {{-- Drop Zone --}}
-<div id="dropZone"
-        class="border-2 border-dashed border-gray-700 hover:border-indigo-500 rounded-3xl
-            text-center transition cursor-pointer relative overflow-hidden min-h-[300px]">
+<label id="dropZone" for="imageInput"
+       class="border-2 border-dashed border-gray-700 hover:border-indigo-500 rounded-3xl
+           text-center transition cursor-pointer relative overflow-hidden min-h-[300px]">
 
     <div id="uploadPlaceholder" class="flex flex-col items-center justify-center h-full py-10 px-6">
         <div class="mx-auto w-16 h-16 bg-gray-800 rounded-2xl flex items-center justify-center mb-4">
@@ -202,4 +202,4 @@
 
     <div id="imagePreview" class="absolute inset-0 hidden bg-gray-900"></div>
     <input type="file" name="images[]" id="imageInput" multiple accept="image/*" class="hidden">
-</div>
+</label>

@@ -11,6 +11,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 
 class ListingController extends Controller
 {
@@ -138,6 +139,25 @@ class ListingController extends Controller
     // ── Store ─────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
+        // Helpful debug logging when files aren't arriving on the server.
+        // Common causes: php.ini `post_max_size` / `upload_max_filesize`, webserver limits
+        // (nginx `client_max_body_size`), or missing multipart `enctype` on the form.
+        try {
+            $files = $request->allFiles();
+            Log::info('Listing upload debug', [
+                'content_length' => $request->server('CONTENT_LENGTH'),
+                'files_count'    => count($files),
+                'files_keys'     => array_keys($files),
+            ]);
+
+            // If the client sent a non-empty body but PHP provided no files, surface a clearer error.
+            if (count($files) === 0 && (int) $request->server('CONTENT_LENGTH') > 0) {
+                return back()->withErrors(['images' => 'No files were uploaded. Possible server limit (post_max_size / upload_max_filesize) or request body truncated. Check PHP and webserver settings.'])->withInput();
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Failed to log upload debug: ' . $e->getMessage());
+        }
+
         $validated = $request->validate([
             'game_id'           => 'required|exists:games,id',
             'description'       => 'required|string',
