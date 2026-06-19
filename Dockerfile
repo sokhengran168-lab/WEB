@@ -27,6 +27,12 @@ RUN docker-php-ext-install \
     bcmath \
     gd
 
+# ── Increase PHP upload limits ──────────────────────────────────
+RUN echo "upload_max_filesize = 50M" > /usr/local/etc/php/conf.d/uploads.ini \
+ && echo "post_max_size = 60M"       >> /usr/local/etc/php/conf.d/uploads.ini \
+ && echo "memory_limit = 256M"       >> /usr/local/etc/php/conf.d/uploads.ini \
+ && echo "max_execution_time = 120"  >> /usr/local/etc/php/conf.d/uploads.ini
+
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
@@ -50,7 +56,7 @@ RUN chown -R www-data:www-data storage bootstrap/cache
 EXPOSE 8080
 
 CMD php artisan migrate --force && \
-    php artisan db:seed --force && \
+    php artisan db:seed --force & \
     php artisan config:cache && \
     php artisan route:cache && \
     php artisan serve --host=0.0.0.0 --port=$PORT

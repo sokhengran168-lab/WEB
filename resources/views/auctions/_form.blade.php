@@ -185,7 +185,7 @@
 </div>
 
 {{-- Drop Zone --}}
-<label id="dropZone" for="imageInput"
+<div id="dropZone" for="imageInput"
        class="border-2 border-dashed border-gray-700 hover:border-indigo-500 rounded-3xl
            text-center transition cursor-pointer relative overflow-hidden min-h-[300px]">
 
@@ -202,4 +202,4 @@
 
     <div id="imagePreview" class="absolute inset-0 hidden bg-gray-900"></div>
     <input type="file" name="images[]" id="imageInput" multiple accept="image/*" class="hidden">
-</label>
+</div>

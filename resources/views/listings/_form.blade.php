@@ -293,7 +293,7 @@
         </div>
 
         {{-- Drop zone — IDs match upload.js expectations --}}
-        <label id="dropZone" for="imageInput"
+        <div id="dropZone" for="imageInput"
             class="border-2 border-dashed border-gray-700 hover:border-indigo-500 rounded-3xl
                 text-center transition cursor-pointer relative overflow-hidden min-h-[200px]">
 
@@ -314,7 +314,7 @@
 
             <input type="file" name="images[]" id="imageInput"
                    multiple accept="image/jpeg,image/png,image/webp" class="hidden">
-        </label>
+        </di>
 
         @error('images')
             <p class="text-red-400 text-sm mt-2">{{ $message }}</p>
