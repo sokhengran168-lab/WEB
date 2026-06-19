@@ -293,9 +293,9 @@
         </div>
 
         {{-- Drop zone — IDs match upload.js expectations --}}
-        <div id="dropZone"
-             class="border-2 border-dashed border-gray-700 hover:border-indigo-500 rounded-3xl
-                    text-center transition cursor-pointer relative overflow-hidden min-h-[200px]">
+        <div id="dropZone" for="imageInput"
+            class="border-2 border-dashed border-gray-700 hover:border-indigo-500 rounded-3xl
+                text-center transition cursor-pointer relative overflow-hidden min-h-[200px]">
 
             <div id="uploadPlaceholder" class="flex flex-col items-center justify-center h-full py-10 px-6">
                 <div class="mx-auto w-14 h-14 bg-gray-800 rounded-2xl flex items-center justify-center mb-4">

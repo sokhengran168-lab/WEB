@@ -7,6 +7,7 @@ use App\Models\Transaction;
 use App\Services\EscrowService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+
 class TransactionController extends Controller
 {
     public function __construct(
@@ -53,7 +54,7 @@ class TransactionController extends Controller
         // Allow if it's already reserved by this buyer
         $existing = Transaction::where('listing_id', $listing->id)
             ->where('buyer_id', Auth::id())
-            ->whereIn('status', ['pending', 'paid', 'escrow'])
+            ->whereIn('status', ['pending', 'escrow'])
             ->first();
 
         if ($listing->status !== 'active' && !$existing) {
@@ -67,7 +68,7 @@ class TransactionController extends Controller
         // Prevent duplicate transactions
         $existing = Transaction::where('listing_id', $listing->id)
             ->where('buyer_id', Auth::id())
-            ->whereIn('status', ['pending', 'paid', 'escrow'])
+            ->whereIn('status', ['pending', 'escrow'])
             ->first();
 
         if ($existing) {
@@ -91,24 +92,18 @@ class TransactionController extends Controller
             'payment_method'   => 'card',
             'status'           => 'pending',
 
-            //  dynamic from config
             'bank_name'            => config('payment.bank_name'),
             'bank_account_name'    => config('payment.bank_account_name'),
             'bank_account_number'  => config('payment.bank_account_number'),
             'bank_swift'           => config('payment.bank_swift'),
-
         ]);
-        // dd($transaction);
-
-        // Reserve listing so nobody else can buy it
-        // $listing->update(['status' => 'reserved']);
 
         return redirect()
             ->route('transactions.payment', $transaction)
             ->with('success', 'Proceed to payment to secure this listing.');
     }
 
-    // ── Step 2: Checkout summary page (payment method selection) ─────────────
+    // ── Step 2: Checkout summary page ────────────────────────────────────────
     public function payment(Transaction $transaction)
     {
         if ($transaction->buyer_id !== Auth::id()) abort(403);
@@ -136,12 +131,11 @@ class TransactionController extends Controller
         return view('transactions.card', compact('transaction'));
     }
 
-    // ── Step 4: Process card payment (fake — for demo) ────────────────────────
+    // ── Step 4: Process card payment ─────────────────────────────────────────
     public function pay(Request $request, Transaction $transaction)
     {
         if ($transaction->buyer_id !== Auth::id()) abort(403);
 
-        // ✅ Check if already taken BEFORE payment success
         if ($transaction->listing->status !== 'active') {
             return redirect()
                 ->route('transactions.show', $transaction)
@@ -161,13 +155,12 @@ class TransactionController extends Controller
         $last4 = substr(str_replace(' ', '', $request->card_number), -4);
 
         $transaction->update([
-            'status'         => 'paid',
+            'status'         => 'escrow',
             'buyer_paid_at'  => now(),
             'payment_method' => 'card',
             'payment_note'   => 'Paid by card ending ' . $last4,
         ]);
 
-        // ✅ Reserve listing here (NOT in store)
         $transaction->listing->update([
             'status' => 'reserved'
         ]);
@@ -177,7 +170,7 @@ class TransactionController extends Controller
             ->with('success', '🎉 Payment successful! Funds held in escrow. Contact the seller now!');
     }
 
-    // ── Buyer confirms receipt — release escrow to seller ─────────────────────
+    // ── Buyer confirms receipt ────────────────────────────────────────────────
     public function confirm(Transaction $transaction)
     {
         if ($transaction->buyer_id !== Auth::id()) abort(403);
@@ -186,9 +179,7 @@ class TransactionController extends Controller
             return back()->with('error', 'This transaction cannot be confirmed.');
         }
 
-
         $this->escrowService->release($transaction, 'buyer');
-        
 
         return redirect()
             ->route('transactions.show', $transaction)
@@ -228,7 +219,7 @@ class TransactionController extends Controller
             ->with('success', 'Order cancelled. Listing is available again.');
     }
 
-    // ── Mark paid manually (kept for admin use) ───────────────────────────────
+    // ── Mark paid manually ────────────────────────────────────────────────────
     public function markPaid(Request $request, Transaction $transaction)
     {
         if ($transaction->buyer_id !== Auth::id()) abort(403);
@@ -238,7 +229,7 @@ class TransactionController extends Controller
         }
 
         $transaction->update([
-            'status'        => 'paid',
+            'status'        => 'escrow',
             'buyer_paid_at' => now(),
             'payment_note'  => $request->payment_note,
         ]);

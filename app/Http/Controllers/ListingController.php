@@ -138,7 +138,6 @@ class ListingController extends Controller
     // ── Store ─────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
-        // dd(request()->files->all());
         $validated = $request->validate([
             'game_id'           => 'required|exists:games,id',
             'description'       => 'required|string',
