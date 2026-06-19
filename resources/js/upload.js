@@ -53,6 +53,7 @@ export function initImageUpload() {
 
     previewContainer.addEventListener('drop', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         dropZone.classList.remove('border-indigo-500');
         mergeAndHandle(Array.from(e.dataTransfer.files));
     });
@@ -84,11 +85,12 @@ export function initImageUpload() {
     fileInput.addEventListener('change', function () {
         mergeAndHandle(Array.from(this.files));
         // Reset input so the same file can be re-selected if removed
-        this.value = '';
+        // this.value = '';
     });
 
     // ── Merge new files into allFiles, skip duplicates by name+size ────────
     function mergeAndHandle(newFiles) {
+        console.log('FILES:', allFiles.files);
         const existing = Array.from(allFiles.files);
 
         for (const file of newFiles) {
@@ -274,8 +276,8 @@ export function initImageUpload() {
 
     // ── Reset ──────────────────────────────────────────────────────────────
     function resetPreview() {
-        allFiles = new DataTransfer();
-        fileInput.files = allFiles.files;
+        allFiles = new DataTransfer();          // ← wipe accumulated files
+        fileInput.files = allFiles.files;       // ← sync the empty state
         previewContainer.innerHTML = '';
         previewContainer.classList.add('hidden', 'absolute', 'inset-0');
         previewContainer.classList.remove('block', 'relative');
@@ -283,6 +285,28 @@ export function initImageUpload() {
     }
 
     window._clearImages = function () { resetPreview(); };
+
+    const form = dropZone.closest('form');
+    if (form) {
+        // form.addEventListener('submit', () => {
+        //     fileInput.files = allFiles.files;
+        // }, true); // true = capture phase, fires before everything else
+            form.addEventListener('submit', function () {
+
+            if (allFiles.files.length === 0) return;
+
+            const newInput = fileInput.cloneNode();
+            const dataTransfer = new DataTransfer();
+
+            Array.from(allFiles.files).forEach(file => {
+                dataTransfer.items.add(file);
+            });
+
+            newInput.files = dataTransfer.files;
+
+            fileInput.parentNode.replaceChild(newInput, fileInput);
+        });
+    }
 }
 
 export function initTelegramInput() {

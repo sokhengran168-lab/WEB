@@ -447,39 +447,52 @@ window.clearSearch = function () {
     loadListings();
 };
 
-    // Hero search form
+    // Hero search form — clear game_id when doing a text search
     document.getElementById('searchForm').addEventListener('submit', function (e) {
         e.preventDefault();
         const q = document.getElementById('heroSearchInput').value;
-        // sync into hidden field if it exists
-        const hidden = filterForm.querySelector('[name="search"]');
+
+        let hidden = filterForm.querySelector('[name="search"]');
         if (hidden) hidden.value = q;
         else {
             const h = document.createElement('input');
             h.type = 'hidden'; h.name = 'search'; h.value = q;
             filterForm.appendChild(h);
         }
-        loadListings();
-        // document.getElementById('browse').scrollIntoView({ behavior: 'smooth' });
-        const browse = document.getElementById('browse');
 
+        // Clear game filter when doing a text search
+        const gameInput = filterForm.querySelector('[name="game_id"]');
+        if (gameInput) gameInput.value = '';
+
+        // Reset active tab UI to "All Games"
+        document.querySelectorAll('[data-filter]').forEach(el => {
+            el.classList.remove('bg-indigo-600', 'text-white');
+            el.classList.add('bg-gray-900', 'text-gray-400', 'border', 'border-gray-800');
+        });
+        document.querySelector('[data-filter]').classList.add('bg-indigo-600', 'text-white');
+
+        loadListings();
+        const browse = document.getElementById('browse');
         if (window.scrollY < browse.offsetTop - 100) {
             browse.scrollIntoView({ behavior: 'smooth' });
         }
     });
 
-    // Live search while typing in hero
-document.getElementById('heroSearchInput').addEventListener('input', function () {
-    toggleClearBtn();
+    // Live search — also clear game_id
+    document.getElementById('heroSearchInput').addEventListener('input', function () {
+        toggleClearBtn();
 
-    const q = this.value;
-    const hidden = filterForm.querySelector('[name="search"]');
+        const q = this.value;
+        const hidden = filterForm.querySelector('[name="search"]');
+        if (hidden) hidden.value = q;
 
-    if (hidden) hidden.value = q;
+        // Clear game filter when typing
+        const gameInput = filterForm.querySelector('[name="game_id"]');
+        if (gameInput) gameInput.value = '';
 
-    clearTimeout(debounce);
-    debounce = setTimeout(loadListings, 300);
-});
+        clearTimeout(debounce);
+        debounce = setTimeout(loadListings, 300);
+    });
 
     // Filter selects
     filterForm.querySelectorAll('select').forEach(el => {
@@ -490,6 +503,42 @@ document.getElementById('heroSearchInput').addEventListener('input', function ()
     filterForm.querySelectorAll('input[name="min_price"], input[name="max_price"]').forEach(el => {
         el.addEventListener('change', loadListings);
     });
+
+    // Quick search from chip click
+    window.quickSearch = function (value, gameId = null) {
+        // Clear text search when a chip is used as a game filter
+        document.getElementById('heroSearchInput').value = '';
+        toggleClearBtn();
+
+        let searchInput = filterForm.querySelector('[name="search"]');
+        if (!searchInput) {
+            searchInput = document.createElement('input');
+            searchInput.type = 'hidden';
+            searchInput.name = 'search';
+            filterForm.appendChild(searchInput);
+        }
+        searchInput.value = ''; // chips filter by game, not text
+
+        if (gameId) {
+            let gameInput = filterForm.querySelector('[name="game_id"]');
+            if (!gameInput) {
+                gameInput = document.createElement('input');
+                gameInput.type = 'hidden';
+                gameInput.name = 'game_id';
+                filterForm.appendChild(gameInput);
+            }
+            gameInput.value = gameId;
+        }
+
+        clearTimeout(debounce);
+        debounce = setTimeout(() => {
+            loadListings();
+            const browse = document.getElementById('browse');
+            if (window.scrollY < browse.offsetTop - 100) {
+                browse.scrollIntoView({ behavior: 'smooth' });
+            }
+        }, 80);
+    };
 
     // Counter animation
     document.querySelectorAll('[data-count]').forEach(el => {
@@ -502,52 +551,6 @@ document.getElementById('heroSearchInput').addEventListener('input', function ()
             if (v >= target) clearInterval(iv);
         }, 35);
     });
-
-    // Quick search from chip click
-    window.quickSearch = function (value, gameId = null) {
-        toggleClearBtn();
-
-        // update input UI
-        document.getElementById('heroSearchInput').value = value || '';
-
-        // set search
-        let searchInput = filterForm.querySelector('[name="search"]');
-        if (!searchInput) {
-            searchInput = document.createElement('input');
-            searchInput.type = 'hidden';
-            searchInput.name = 'search';
-            filterForm.appendChild(searchInput);
-        }
-
-        searchInput.value = value || '';
-
-        // set game_id
-        if (gameId) {
-            let gameInput = filterForm.querySelector('[name="game_id"]');
-
-            if (!gameInput) {
-                gameInput = document.createElement('input');
-                gameInput.type = 'hidden';
-                gameInput.name = 'game_id';
-                filterForm.appendChild(gameInput);
-            }
-
-            gameInput.value = gameId;
-        }
-
-        clearTimeout(debounce);
-
-        debounce = setTimeout(() => {
-
-            loadListings();
-
-            const browse = document.getElementById('browse');
-            if (window.scrollY < browse.offsetTop - 100) {
-                browse.scrollIntoView({ behavior: 'smooth' });
-            }
-
-        }, 80);
-    };
 
     document.querySelectorAll('[data-filter]').forEach(link => {
     link.addEventListener('click', function (e) {

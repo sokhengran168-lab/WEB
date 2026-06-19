@@ -15,6 +15,7 @@ window.Alpine = Alpine;
 Alpine.start();
 
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('App JS loaded ✅');
     initImageUpload();
     initTelegramInput();
     initListingShow(); // safe to call on every page — guards check for element existence

@@ -312,8 +312,12 @@
             {{-- upload.js renders the preview here --}}
             <div id="imagePreview" class="absolute inset-0 hidden bg-gray-900"></div>
 
-            <input type="file" name="images[]" id="imageInput"
-                   multiple accept="image/jpeg,image/png,image/webp" class="hidden">
+            <input type="file" name="images[]"
+                    id="imageInput"
+                    multiple
+                    accept="image/jpeg,image/png,image/webp"
+                    class="block w-full mt-4 text-sm text-white">
+
         </div>
 
         @error('images')

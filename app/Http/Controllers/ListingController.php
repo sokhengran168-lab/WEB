@@ -138,12 +138,14 @@ class ListingController extends Controller
     // ── Store ─────────────────────────────────────────────────────────────
     public function store(Request $request)
     {
+        // dd(request()->files->all());
         $validated = $request->validate([
             'game_id'           => 'required|exists:games,id',
             'description'       => 'required|string',
             'title'             => 'required|string|max:255',
             'price'             => 'required|numeric|min:1',
             'rank'              => 'nullable|string|max:100',
+            'server'            => 'nullable|string|max:100',
             'level'             => 'nullable|integer|min:1',
             'platform'          => 'required|in:Mobile,PC,Console',
             'contact_whatsapp'  => 'nullable|string|max:20',
@@ -211,13 +213,17 @@ class ListingController extends Controller
             'flagged_at'  => $isFlagged ? now() : null,
         ]);
 
-        foreach ($request->file('images', []) as $index => $image) {
-            $path = $this->uploadImage($image, $listing->id);
-            $listing->images()->create([
-                'image_path' => $path,
-                'is_proof'   => true,
-                'sort_order' => $index,
-            ]);
+        $images = $request->file('images');
+        if ($images) {
+            foreach ($images as $index => $image) {
+                $path = $this->uploadImage($image, $listing->id);
+
+                $listing->images()->create([
+                    'image_path' => $path,
+                    'is_proof'   => true,
+                    'sort_order' => $index,
+                ]);
+            }
         }
 
         $message = $isFlagged
@@ -260,6 +266,7 @@ class ListingController extends Controller
                 'bid_increment'    => 'required|numeric|min:0.5',
                 'auction_ends_at'  => 'required|date|after:now',
                 'rank'             => 'nullable|string|max:100',
+                'server'           => 'nullable|string|max:100',
                 'level'            => 'nullable|integer|min:1',
                 'platform'         => 'required|in:Mobile,PC,Console',
             ]);

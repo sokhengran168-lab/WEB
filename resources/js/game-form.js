@@ -12,10 +12,6 @@ export function registerGameForm(Alpine) {
         ranks:   [],
         servers: [],
 
-        // Stored so we can restore after updateOptions populates the arrays
-        _pendingRank:   '',
-        _pendingServer: '',
-
         init() {
             const scriptTag = document.getElementById('games-data');
             if (!scriptTag) return;
@@ -27,9 +23,6 @@ export function registerGameForm(Alpine) {
                 return;
             }
 
-            // Quick sanity check — log what came through so you can verify in DevTools
-            console.debug('game-form: loaded games', this.games);
-
             const el = this.$el;
 
             const oldGame   = el.dataset.oldGame   || '';
@@ -37,30 +30,20 @@ export function registerGameForm(Alpine) {
             const oldServer = el.dataset.oldServer || '';
 
             this.selectedGame = oldGame;
+
+            // Populate ranks/servers without resetting selections
             this.updateOptions(false);
 
-            this.selectedRank   = this.ranks.includes(oldRank)   ? oldRank   : (this.ranks[0]   ?? '');
+            // Restore old selections only if they exist in the available options
+            this.selectedRank   = this.ranks.includes(oldRank)    ? oldRank   : (this.ranks[0]   ?? '');
             this.selectedServer = this.servers.includes(oldServer) ? oldServer : (this.servers[0] ?? '');
         },
 
         updateOptions(reset = false) {
             const game = this.games.find(g => String(g.id) === String(this.selectedGame));
 
-            // Guard: ranks/servers must be arrays — bad JSON decode gives null/string
             this.ranks   = Array.isArray(game?.ranks)   ? game.ranks   : [];
             this.servers = Array.isArray(game?.servers) ? game.servers : [];
-
-            if (reset) {
-                this.selectedRank   = this.ranks[0]   ?? '';
-                this.selectedServer = this.servers[0] ?? '';
-            }
-        },
-
-        updateOptions(reset = false) {
-            const game = this.games.find(g => String(g.id) === String(this.selectedGame));
-
-            this.ranks   = game?.ranks   ?? [];
-            this.servers = game?.servers ?? [];
 
             if (reset) {
                 this.selectedRank   = this.ranks[0]   ?? '';
